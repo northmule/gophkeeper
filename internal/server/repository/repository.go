@@ -10,6 +10,7 @@ type Manager struct {
 	cardData *CardDataRepository
 	owner    *OwnerRepository
 	metaData *MetaDataRepository
+	textData *TextDataRepository
 }
 
 // NewManager конструктор
@@ -30,11 +31,16 @@ func NewManager(db storage.DBQuery) (Repository, error) {
 	if err != nil {
 		return nil, err
 	}
+	textDataRepository, err := NewTextDataRepository(db)
+	if err != nil {
+		return nil, err
+	}
 	instance := &Manager{
 		user:     userRepository,
 		cardData: cardDataRepository,
 		owner:    ownerRepository,
 		metaData: metaDataRepository,
+		textData: textDataRepository,
 	}
 
 	return instance, nil
@@ -45,6 +51,7 @@ type Repository interface {
 	CardData() *CardDataRepository
 	Owner() *OwnerRepository
 	MetaData() *MetaDataRepository
+	TextData() *TextDataRepository
 }
 
 // User репозитацрий
@@ -65,4 +72,9 @@ func (m *Manager) Owner() *OwnerRepository {
 // MetaData репозитацрий
 func (m *Manager) MetaData() *MetaDataRepository {
 	return m.metaData
+}
+
+// TextData репозитацрий
+func (m *Manager) TextData() *TextDataRepository {
+	return m.textData
 }

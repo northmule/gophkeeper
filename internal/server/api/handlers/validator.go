@@ -39,6 +39,8 @@ func (v *ValidatorHandler) HandleValidation(next http.Handler) http.Handler {
 		case *registrationRequest:
 		case *authenticationRequest:
 		case *cardDataRequest:
+		case *textDataRequest:
+
 			validate := validator.New(validator.WithRequiredStructEnabled())
 			err = render.Bind(req, requestType)
 			err = errors.Join(err, validate.Struct(requestType)) // doc: https://pkg.go.dev/github.com/go-playground/validator/v10

@@ -26,6 +26,7 @@ func NewCardDataRepository(store storage.DBQuery) (*CardDataRepository, error) {
 	return instance, nil
 }
 
+// FindOneByUUID поиск значения по UUID
 func (r *CardDataRepository) FindOneByUUID(ctx context.Context, uuid string) (*models.CardData, error) {
 
 	ctx, cancel := context.WithTimeout(ctx, timeOut)

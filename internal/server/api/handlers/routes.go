@@ -44,6 +44,7 @@ func (ar *AppRoutes) DefiningAppRoutes() chi.Router {
 
 	itemsListHandler := NewItemsListHandler(accessService, ar.manager, ar.log)
 	cardDataHandler := NewCardDataHandler(accessService, ar.manager, ar.log)
+	textDataHandler := NewTextDataHandler(accessService, ar.manager, ar.log)
 
 	r := chi.NewRouter()
 
@@ -64,12 +65,19 @@ func (ar *AppRoutes) DefiningAppRoutes() chi.Router {
 				jwtauth.Authenticator(jwtTokenObject),
 			).Get("/items_list", itemsListHandler.HandleItemsList)
 
-			// добавить данные банковской карты
+			// добавить/изменить данные банковской карты
 			r.With(
 				jwtauth.Verify(jwtTokenObject, accessService.FindTokenByRequest),
 				jwtauth.Authenticator(jwtTokenObject),
 				NewValidatorHandler(new(cardDataRequest), ar.log).HandleValidation,
 			).Post("/save_card_data", cardDataHandler.HandleSave)
+
+			// добавить/изменить текстовые данные
+			r.With(
+				jwtauth.Verify(jwtTokenObject, accessService.FindTokenByRequest),
+				jwtauth.Authenticator(jwtTokenObject),
+				NewValidatorHandler(new(textDataRequest), ar.log).HandleValidation,
+			).Post("/save_text_data", textDataHandler.HandleSave)
 		})
 
 		// Общедоступное api

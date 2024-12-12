@@ -26,6 +26,7 @@ func NewMetaDataRepository(store storage.DBQuery) (*MetaDataRepository, error) {
 	return instance, nil
 }
 
+// FindOneByUUID поиск значения по UUID
 func (r *MetaDataRepository) FindOneByUUID(ctx context.Context, uuid string) ([]models.MetaData, error) {
 
 	ctx, cancel := context.WithTimeout(ctx, timeOut)
