@@ -45,6 +45,7 @@ func (ar *AppRoutes) DefiningAppRoutes() chi.Router {
 	itemsListHandler := NewItemsListHandler(accessService, ar.manager, ar.log)
 	cardDataHandler := NewCardDataHandler(accessService, ar.manager, ar.log)
 	textDataHandler := NewTextDataHandler(accessService, ar.manager, ar.log)
+	fileDataHandler := NewFileDataHandler(accessService, ar.manager, ar.log)
 
 	r := chi.NewRouter()
 
@@ -78,6 +79,20 @@ func (ar *AppRoutes) DefiningAppRoutes() chi.Router {
 				jwtauth.Authenticator(jwtTokenObject),
 				NewValidatorHandler(new(textDataRequest), ar.log).HandleValidation,
 			).Post("/save_text_data", textDataHandler.HandleSave)
+
+			// инициализация приёма файла, базовые данные о файле
+			r.With(
+				jwtauth.Verify(jwtTokenObject, accessService.FindTokenByRequest),
+				jwtauth.Authenticator(jwtTokenObject),
+				NewValidatorHandler(new(fileDataInitRequest), ar.log).HandleValidation,
+			).Post("/file_data/init", fileDataHandler.HandleInit)
+
+			// приём данных файла
+			r.With(
+				jwtauth.Verify(jwtTokenObject, accessService.FindTokenByRequest),
+				jwtauth.Authenticator(jwtTokenObject),
+			).Post("/file_data/{action}/{file_uuid}/{part}", fileDataHandler.HandleAction)
+
 		})
 
 		// Общедоступное api

@@ -6,11 +6,10 @@ import (
 
 // CardData данные бансковских карт
 type CardData struct {
-	ID         int64           `json:"id"`
+	Common
 	Name       string          `json:"name"`        // короткое название
-	ObjectType string          `json:"object_type"` // тип данных из value
+	ObjectType string          `json:"object_type"` // тип данных из value (прим. card_data_value_v1, card_data_value_v2 ...)
 	Value      CardDataValueV1 `json:"value"`       // jsonb postgress (тип зависит от ObjectType)
-	UUID       string          `json:"uuid"`        // uuid этих данных
 }
 
 // CardDataValueV1 значение для Value

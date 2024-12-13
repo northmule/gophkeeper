@@ -1,0 +1,4 @@
+# Адрес сервера
+ServerAddress: "localhost:9098"
+# Уровень логирования
+LogLever: "info"

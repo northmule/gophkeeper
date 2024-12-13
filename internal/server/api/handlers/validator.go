@@ -40,6 +40,7 @@ func (v *ValidatorHandler) HandleValidation(next http.Handler) http.Handler {
 		case *authenticationRequest:
 		case *cardDataRequest:
 		case *textDataRequest:
+		case *fileDataInitRequest:
 
 			validate := validator.New(validator.WithRequiredStructEnabled())
 			err = render.Bind(req, requestType)

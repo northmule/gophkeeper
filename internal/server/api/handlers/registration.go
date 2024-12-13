@@ -80,12 +80,15 @@ func (r *RegistrationHandler) HandleRegistration(res http.ResponseWriter, req *h
 		_ = render.Render(res, req, ErrInternalServerError)
 		return
 	}
-	newUser := models.User{
-		Login:    request.Login,
-		Password: passwordHash,
-		Email:    request.Email,
-		UUID:     uuid.NewString(),
-	}
+	uuu := new(models.User)
+	uuu.UUID = "2324"
+	var newUser models.User
+
+	newUser.Login = request.Login
+	newUser.Password = passwordHash
+	newUser.Email = request.Email
+	newUser.UUID = uuid.NewString()
+
 	tx := req.Context().Value(rctx.TransactionCtxKey).(*storage.Transaction)
 	userID, err := r.manager.User().TxCreateNewUser(req.Context(), tx, newUser)
 	if err != nil {
