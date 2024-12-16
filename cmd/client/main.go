@@ -44,7 +44,7 @@ func run(ctx context.Context) error {
 		return err
 	}
 
-	clientView := appview.NewClientView(log)
+	clientView := appview.NewClientView(cfg, log)
 
 	return clientView.InitMain(ctx)
 }

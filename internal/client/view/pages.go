@@ -7,6 +7,18 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+// Экран регистрации
+type pageRegistration struct {
+}
+
+// Экран с списком данных пользоателя
+type pageDataGrid struct {
+}
+
+// Ввод/редактирование данных о файле
+type pageFileData struct {
+}
+
 type menu struct {
 	options       []menuItem
 	selectedIndex int

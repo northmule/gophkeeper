@@ -24,7 +24,7 @@ var (
 	ErrNotFound            = &ErrResponse{HTTPStatusCode: http.StatusNotFound, StatusText: "Resource not found."}
 	ErrBadRequest          = &ErrResponse{HTTPStatusCode: http.StatusBadRequest, StatusText: "Bad request"}
 	ErrInternalServerError = &ErrResponse{HTTPStatusCode: http.StatusInternalServerError, StatusText: "Internal Server Error"}
-	ErrUnauthorized        = &ErrResponse{HTTPStatusCode: http.StatusUnauthorized, StatusText: "Authorization failed"}
+	ErrUnauthorized        = &ErrResponse{HTTPStatusCode: http.StatusUnauthorized, StatusText: "Authentication failed"}
 )
 
 func ErrConflict(err error) render.Renderer {

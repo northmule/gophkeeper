@@ -6,6 +6,7 @@ import (
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
 	"github.com/northmule/gophkeeper/internal/common/data_type"
+	"github.com/northmule/gophkeeper/internal/common/model_data"
 	"github.com/northmule/gophkeeper/internal/common/models"
 	"github.com/northmule/gophkeeper/internal/server/logger"
 	"github.com/northmule/gophkeeper/internal/server/repository"
@@ -29,12 +30,7 @@ func NewTextDataHandler(accessService *access.Access, manager repository.Reposit
 }
 
 type textDataRequest struct {
-	Name string `json:"name" validate:"required,min=3,max=100"` // короткое название
-	UUID string `json:"uuid" validate:"omitempty,uuid"`         // uuid данных, заполняется при редактирование
-
-	Value string `json:"value"` // Текстовые данные
-
-	Meta map[string]string `json:"meta" validate:"max=5,dive,keys,min=3,max=20,endkeys"` // мета данные (имя поля - значение)
+	model_data.TextDataRequest
 }
 
 // Bind декодирует json в структуру
