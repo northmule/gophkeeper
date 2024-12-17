@@ -1,9 +1,9 @@
 package controller
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/northmule/gophkeeper/internal/client/config"
@@ -12,45 +12,37 @@ import (
 	"golang.org/x/net/context"
 )
 
-// TextData контроллер
-type TextData struct {
+// GridData контроллер
+type GridData struct {
 	logger *logger.Logger
 	cfg    *config.Config
 }
 
-// NewTextData конструктор
-func NewTextData(cfg *config.Config, logger *logger.Logger) *TextData {
-	return &TextData{
+// NewGridData конструктор
+func NewGridData(cfg *config.Config, logger *logger.Logger) *GridData {
+	return &GridData{
 		logger: logger,
 		cfg:    cfg,
 	}
 }
 
-type TextDataResponse struct {
-	Value string
+type GridDataResponse struct {
+	model_data.ListDataItemsResponse
 }
 
 // Send отправка запроса к серверу
-func (c *TextData) Send(token string, requestData *model_data.TextDataRequest) (*TextDataResponse, error) {
-	requestURL := fmt.Sprintf("%s/api/v1/save_text_data", c.cfg.Value().ServerAddress)
+func (c *GridData) Send(token string) (*GridDataResponse, error) {
+	requestURL := fmt.Sprintf("%s/api/v1/items_list?offset=0&limit=200", c.cfg.Value().ServerAddress) //todo
 	ctx := context.Background()
 
-	requestBody, err := json.Marshal(requestData)
+	requestPrepare, err := http.NewRequestWithContext(ctx, http.MethodGet, requestURL, nil)
 	if err != nil {
-		c.logger.Error(err)
-		return nil, err
-	}
-	buf := bytes.NewBuffer(requestBody)
-	requestPrepare, err := http.NewRequestWithContext(ctx, http.MethodPost, requestURL, buf)
-	if err != nil {
-		c.logger.Error(err)
 		return nil, err
 	}
 	requestPrepare.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
 	client := &http.Client{}
 	response, err := client.Do(requestPrepare)
 	if err != nil {
-		c.logger.Error(err)
 		return nil, err
 	}
 	defer response.Body.Close()
@@ -67,8 +59,18 @@ func (c *TextData) Send(token string, requestData *model_data.TextDataRequest) (
 		return nil, fmt.Errorf("не известная ошибка")
 	}
 
-	responseData := new(TextDataResponse)
-	responseData.Value = "ok"
+	bodyRaw, err := io.ReadAll(response.Body)
+	if err != nil {
+		c.logger.Error(err)
+		return nil, err
+	}
+
+	responseData := new(GridDataResponse)
+	err = json.Unmarshal(bodyRaw, responseData)
+	if err != nil {
+		c.logger.Error(err)
+		return nil, err
+	}
 
 	return responseData, nil
 }

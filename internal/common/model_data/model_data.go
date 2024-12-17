@@ -28,3 +28,30 @@ type TextDataRequest struct {
 
 	Meta map[string]string `json:"meta" validate:"max=5,dive,keys,min=3,max=20,endkeys"` // мета данные (имя поля - значение)
 }
+
+// FileDataInitRequest Запрос инициализации загрузки файла (основная информация о файле) (клиент и сервер)
+type FileDataInitRequest struct {
+	Name     string `json:"name" validate:"required,min=3,max=100"` // короткое название
+	UUID     string `json:"uuid" validate:"omitempty,uuid"`         // uuid данных, заполняется при редактирование
+	MimeType string `json:"mime_type"`                              // тип файла
+
+	Extension string `json:"extension" validate:"required,min=1,max=10"`  // расширение файла
+	FileName  string `json:"file_name" validate:"required,min=3,max=100"` // оригинальное имя файла
+	Size      int64  `json:"size"`                                        // размер файла в байтах
+
+	Meta map[string]string `json:"meta" validate:"max=5,dive,keys,min=3,max=20,endkeys"` // мета данные (имя поля - значение)
+}
+
+// ItemDataResponse одна еденица данных пользователя
+type ItemDataResponse struct {
+	Number     string `json:"number"`
+	Type       string `json:"type"`
+	Name       string `json:"name"`
+	UpdateDate string `json:"update_date"`
+	UUID       string `json:"uuid"`
+}
+
+// ListDataItemsResponse список данных пользователя
+type ListDataItemsResponse struct {
+	Items []ItemDataResponse `json:"items"`
+}

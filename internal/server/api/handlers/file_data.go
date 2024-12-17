@@ -9,7 +9,9 @@ import (
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
 	"github.com/northmule/gophkeeper/internal/common/data_type"
+	"github.com/northmule/gophkeeper/internal/common/model_data"
 	"github.com/northmule/gophkeeper/internal/common/models"
+	"github.com/northmule/gophkeeper/internal/server/config"
 	"github.com/northmule/gophkeeper/internal/server/logger"
 	"github.com/northmule/gophkeeper/internal/server/repository"
 	"github.com/northmule/gophkeeper/internal/server/services/access"
@@ -21,10 +23,12 @@ type FileDataHandler struct {
 	accessService  *access.Access
 	manager        repository.Repository
 	expectedAction map[string]bool
+
+	cfg *config.Config
 }
 
 // NewFileDataHandler конструктор
-func NewFileDataHandler(accessService *access.Access, manager repository.Repository, log *logger.Logger) *FileDataHandler {
+func NewFileDataHandler(accessService *access.Access, manager repository.Repository, cfg *config.Config, log *logger.Logger) *FileDataHandler {
 	expectedAction := make(map[string]bool)
 
 	expectedAction["load"] = true
@@ -35,20 +39,13 @@ func NewFileDataHandler(accessService *access.Access, manager repository.Reposit
 		manager:        manager,
 		log:            log,
 		expectedAction: expectedAction,
+		cfg:            cfg,
 	}
 }
 
 // Запрос инициализации загрузки файла (основная информация о файле)
 type fileDataInitRequest struct {
-	Name     string `json:"name" validate:"required,min=3,max=100"` // короткое название
-	UUID     string `json:"uuid" validate:"omitempty,uuid"`         // uuid данных, заполняется при редактирование
-	MimeType string `json:"mime_type"`                              // тип файла
-
-	Extension string `json:"extension" validate:"required,min=1,max=10"`  // расширение файла
-	FileName  string `json:"file_name" validate:"required,min=3,max=100"` // оригинальное имя файла
-	Size      int64  `json:"size"`                                        // размер файла в байтах
-
-	Meta map[string]string `json:"meta" validate:"max=5,dive,keys,min=3,max=20,endkeys"` // мета данные (имя поля - значение)
+	model_data.FileDataInitRequest
 }
 
 // Ответ на данные инициализации
@@ -160,8 +157,12 @@ func (h *FileDataHandler) HandleInit(res http.ResponseWriter, req *http.Request)
 
 		fileData.UUID = dataUUID
 		fileData.PathTmp = os.TempDir() + "/" + dataUUID
-		fileData.Path = os.TempDir() + "/load_" + dataUUID // todo в конфиг
-		fileData.Storage = "local://"                      // todo в настройки (сейчас не используется)
+		fileBaseDir := os.TempDir()
+		if h.cfg.Value().PathFileStorage != "" {
+			fileBaseDir = h.cfg.Value().PathFileStorage
+		}
+		fileData.Path = fileBaseDir + "/load_" + dataUUID
+		fileData.Storage = "local://" // todo в настройки (сейчас не используется)
 		fileData.Uploaded = false
 
 		_, err = h.manager.FileData().Add(req.Context(), fileData)
@@ -210,7 +211,7 @@ func (h *FileDataHandler) HandleInit(res http.ResponseWriter, req *http.Request)
 
 }
 
-// HandleAction создание/обновление данных
+// HandleAction принимает содержимое файла отправляемое клиентом
 func (h *FileDataHandler) HandleAction(res http.ResponseWriter, req *http.Request) {
 	var (
 		err        error
@@ -251,17 +252,23 @@ func (h *FileDataHandler) HandleAction(res http.ResponseWriter, req *http.Reques
 		_ = render.Render(res, req, ErrNotFound)
 		return
 	}
-
-	fileData, err = h.manager.FileData().FindOneByUUID(req.Context(), dataUUID)
-	// Всё сразу todo по частям и с part
-	buffer := make([]byte, req.ContentLength)
-	_, err = io.ReadFull(req.Body, buffer)
-	if err != nil && err != io.EOF {
+	err = req.ParseMultipartForm(4096)
+	if err != nil {
 		h.log.Error(err)
-		_ = render.Render(res, req, ErrInternalServerError)
+		_ = render.Render(res, req, ErrBadRequest)
 		return
 	}
+	requestFile, _, err := req.FormFile(data_type.FileField)
+	if err != nil {
+		h.log.Error(err)
+		_ = render.Render(res, req, ErrBadRequest)
+		return
+	}
+	defer requestFile.Close()
 
+	fileData, err = h.manager.FileData().FindOneByUUID(req.Context(), dataUUID)
+
+	// Всё сразу todo по частям и с part
 	filename := fileData.Path + "/" + fileData.FileName
 	err = os.Mkdir(fileData.Path+"/", 0777)
 	if err != nil {
@@ -276,12 +283,13 @@ func (h *FileDataHandler) HandleAction(res http.ResponseWriter, req *http.Reques
 		return
 	}
 	defer f.Close()
-	if _, err = f.Write(buffer); err != nil {
+	_, err = io.Copy(f, requestFile)
+	if err != nil {
 		h.log.Error(err)
 		_ = render.Render(res, req, ErrInternalServerError)
 		return
 	}
-	// Файл загруен
+	// Файл загружен
 	fileData.Uploaded = true
 	err = h.manager.FileData().Update(req.Context(), fileData)
 	if err != nil {

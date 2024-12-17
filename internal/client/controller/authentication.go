@@ -47,16 +47,19 @@ func (c *Authentication) Send(login string, password string) (*AuthenticationRes
 
 	requestBody, err := json.Marshal(requestData)
 	if err != nil {
+		c.logger.Error(err)
 		return nil, err
 	}
 	buf := bytes.NewBuffer(requestBody)
 	requestPrepare, err := http.NewRequestWithContext(ctx, http.MethodPost, requestURL, buf)
 	if err != nil {
+		c.logger.Error(err)
 		return nil, err
 	}
 	client := &http.Client{}
 	response, err := client.Do(requestPrepare)
 	if err != nil {
+		c.logger.Error(err)
 		return nil, err
 	}
 	defer response.Body.Close()

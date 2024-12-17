@@ -42,12 +42,14 @@ func (c *CardData) Send(token string, requestData *model_data.CardDataRequest) (
 	buf := bytes.NewBuffer(requestBody)
 	requestPrepare, err := http.NewRequestWithContext(ctx, http.MethodPost, requestURL, buf)
 	if err != nil {
+		c.logger.Error(err)
 		return nil, err
 	}
 	requestPrepare.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
 	client := &http.Client{}
 	response, err := client.Do(requestPrepare)
 	if err != nil {
+		c.logger.Error(err)
 		return nil, err
 	}
 	defer response.Body.Close()

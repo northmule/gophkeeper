@@ -11,6 +11,7 @@ const (
 	MetaNameNote = "meta_name_note"
 	// MetaNameWebSite тип мета веб сайт
 	MetaNameWebSite = "meta_name_website"
+	FileField       = "_file_"
 )
 
 // TranslateDataType Тип поля в название

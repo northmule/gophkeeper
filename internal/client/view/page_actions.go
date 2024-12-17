@@ -26,7 +26,7 @@ func (m pageAction) Init() tea.Cmd {
 func (m pageAction) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		k := msg.String()
-		if k == "down" {
+		if k == "down" || k == "tab" {
 			m.Choice++
 			if m.Choice > 4 {
 				m.Choice = 4
@@ -47,10 +47,11 @@ func (m pageAction) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return newPageTextData(m.mainPage), nil
 			}
 			if m.Choice == 2 {
-				return m, nil
+				p := newPageFileData(m.mainPage)
+				return p, p.Init()
 			}
 			if m.Choice == 3 {
-				return m, nil
+				return newPageDataGrid(m.mainPage, &m), nil
 			}
 
 			// выход

@@ -15,6 +15,7 @@ type ServerConfig struct {
 	LogLevel            string `mapstructure:"LOG_LEVEL"`
 	HTTPCompressLevel   int    `mapstructure:"HTTP_COMPRESS_LEVEL"`
 	PasswordAlgoHashing string `mapstructure:"PASSWORD_ALGO_HASHING"`
+	PathFileStorage     string `mapstructure:"PATH_FILE_STORAGE"`
 }
 
 type ErrorCfg error

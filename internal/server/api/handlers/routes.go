@@ -45,7 +45,8 @@ func (ar *AppRoutes) DefiningAppRoutes() chi.Router {
 	itemsListHandler := NewItemsListHandler(accessService, ar.manager, ar.log)
 	cardDataHandler := NewCardDataHandler(accessService, ar.manager, ar.log)
 	textDataHandler := NewTextDataHandler(accessService, ar.manager, ar.log)
-	fileDataHandler := NewFileDataHandler(accessService, ar.manager, ar.log)
+	fileDataHandler := NewFileDataHandler(accessService, ar.manager, ar.cfg, ar.log)
+	itemDataHandler := NewItemDataHandler(accessService, ar.manager, ar.log)
 
 	r := chi.NewRouter()
 
@@ -65,6 +66,12 @@ func (ar *AppRoutes) DefiningAppRoutes() chi.Router {
 				jwtauth.Verify(jwtTokenObject, accessService.FindTokenByRequest),
 				jwtauth.Authenticator(jwtTokenObject),
 			).Get("/items_list", itemsListHandler.HandleItemsList)
+
+			// Получить данные по uuid
+			r.With(
+				jwtauth.Verify(jwtTokenObject, accessService.FindTokenByRequest),
+				jwtauth.Authenticator(jwtTokenObject),
+			).Get("/item_get/{uuid}", itemDataHandler.HandleItem)
 
 			// добавить/изменить данные банковской карты
 			r.With(

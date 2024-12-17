@@ -9,9 +9,12 @@ import (
 type Manager struct {
 	logger *logger.Logger
 
+	// Контроллеры
 	authentication *Authentication
 	cardData       *CardData
 	textData       *TextData
+	fileData       *FileData
+	gridData       *GridData
 
 	cfg *config.Config
 }
@@ -23,6 +26,8 @@ func NewManager(cfg *config.Config, logger *logger.Logger) *Manager {
 		authentication: NewAuthentication(cfg, logger),
 		cardData:       NewCardData(cfg, logger),
 		textData:       NewTextData(cfg, logger),
+		fileData:       NewFileData(cfg, logger),
+		gridData:       NewGridData(cfg, logger),
 	}
 }
 
@@ -31,6 +36,8 @@ type ManagerController interface {
 	Authentication() *Authentication
 	CardData() *CardData
 	TextData() *TextData
+	FileData() *FileData
+	GridData() *GridData
 }
 
 // Authentication контроллер
@@ -46,4 +53,14 @@ func (manager *Manager) CardData() *CardData {
 // TextData контроллер
 func (manager *Manager) TextData() *TextData {
 	return manager.textData
+}
+
+// FileData контроллер
+func (manager *Manager) FileData() *FileData {
+	return manager.fileData
+}
+
+// GridData контроллер
+func (manager *Manager) GridData() *GridData {
+	return manager.gridData
 }
