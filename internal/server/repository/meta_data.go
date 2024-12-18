@@ -43,10 +43,12 @@ func (r *MetaDataRepository) FindOneByUUID(ctx context.Context, uuid string) ([]
 	var metaDataList []models.MetaData
 	for rows.Next() {
 		data := models.MetaData{}
-		err = rows.Scan(&data.ID, &data.MetaName, &data.MetaValue, &data.DataUUID)
+		metaValue := models.MetaDataValue{}
+		err = rows.Scan(&data.ID, &data.MetaName, &metaValue.Value, &data.DataUUID)
 		if err != nil {
 			return nil, ErrorMsg(err)
 		}
+		data.MetaValue = metaValue
 		metaDataList = append(metaDataList, data)
 	}
 

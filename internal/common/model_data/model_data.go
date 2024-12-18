@@ -42,16 +42,32 @@ type FileDataInitRequest struct {
 	Meta map[string]string `json:"meta" validate:"max=5,dive,keys,min=3,max=20,endkeys"` // мета данные (имя поля - значение)
 }
 
-// ItemDataResponse одна еденица данных пользователя
+// ItemDataResponse данные возвращаемые сервером в составе массива элементов
 type ItemDataResponse struct {
-	Number     string `json:"number"`
-	Type       string `json:"type"`
-	Name       string `json:"name"`
+	// Порядковый номер
+	Number string `json:"number"`
+	// Человекочитаемый тип
+	Type string `json:"type"`
+	// Имя данных указанное пользователем при создании
+	Name string `json:"name"`
+	// Не используется
 	UpdateDate string `json:"update_date"`
-	UUID       string `json:"uuid"`
+	// UUID данных. Используется для дальнейших запросов
+	UUID string `json:"uuid"`
 }
 
 // ListDataItemsResponse список данных пользователя
 type ListDataItemsResponse struct {
 	Items []ItemDataResponse `json:"items"`
+}
+
+// DataByUUIDResponse данные возвращаемые сервером на запрос по uuid данных
+type DataByUUIDResponse struct {
+	IsCard bool `json:"is_card"`
+	IsText bool `json:"is_text"`
+	IsFile bool `json:"is_file"`
+	// Данные ответа аналогичным данным запроса с стороны клиента по типам данных
+	CardData CardDataRequest     `json:"card_data,omitempty"`
+	TextData TextDataRequest     `json:"text_data,omitempty"`
+	FileData FileDataInitRequest `json:"file_data,omitempty"`
 }
