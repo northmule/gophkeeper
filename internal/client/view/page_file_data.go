@@ -17,6 +17,7 @@ type pageFileData struct {
 	Choice          int
 	Chosen          bool
 	mainPage        *pageIndex
+	gridPage        *pageDataGrid
 	responseMessage string
 	err             error
 	selectedFile    string
@@ -33,6 +34,8 @@ type pageFileData struct {
 	filePath textinput.Model
 	meta1    textinput.Model
 	meta2    textinput.Model
+
+	isEditable bool
 }
 
 func newPageFileData(mainPage *pageIndex) pageFileData {
@@ -66,6 +69,31 @@ func newPageFileData(mainPage *pageIndex) pageFileData {
 	m.filePath = filePath
 	m.meta1 = meta1
 	m.meta2 = meta2
+
+	return m
+}
+
+// SetEditableData значения для редактирования
+func (m pageFileData) SetEditableData(data *model_data.FileDataInitRequest) pageFileData {
+	m.uuid = data.UUID
+	m.name.SetValue(data.Name)
+	m.filePath.SetValue(data.FileName)
+	m.fileName = data.FileName
+
+	if v, ok := data.Meta[data_type.MetaNameNote]; ok {
+		m.meta1.SetValue(v)
+	}
+	if v, ok := data.Meta[data_type.MetaNameWebSite]; ok {
+		m.meta2.SetValue(v)
+	}
+
+	m.isEditable = true
+
+	return m
+}
+
+func (m pageFileData) SetPageGrid(page *pageDataGrid) pageFileData {
+	m.gridPage = page
 
 	return m
 }
@@ -151,8 +179,20 @@ func (m pageFileData) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			if m.Choice == 5 {
+				if m.isEditable {
+					return m.gridPage, nil
+				}
 				return newPageAction(m.mainPage), nil
 			}
+		}
+
+		if k == "ctrl+d" && m.uuid != "" { // скачать файл при редактирование в папку указанную в конфиге
+			err := m.mainPage.managerController.FileData().DownLoadFile(m.mainPage.storage.Token(), m.fileName, m.uuid)
+			if err != nil {
+				m.responseMessage = err.Error()
+			}
+			m.responseMessage = "Файл получен"
+			return m, tea.Batch(cmd, clearErrorAfter(3*time.Second))
 		}
 	}
 
@@ -187,7 +227,9 @@ func (m pageFileData) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m pageFileData) View() string {
 
 	c := m.Choice
-	m.filePath.SetValue(m.selectedFile)
+	if m.selectedFile != "" {
+		m.filePath.SetValue(m.selectedFile)
+	}
 
 	title := renderTitle("Бинарные данные")
 
@@ -195,6 +237,10 @@ func (m pageFileData) View() string {
 	tpl += subtleStyle.Render("вверх/вниз: для переключения") + dotStyle +
 		subtleStyle.Render("enter: начать ввод значения") + dotStyle +
 		responseTextStyle.Render("\n"+m.responseMessage) + dotStyle
+
+	if m.isEditable {
+		tpl += subtleStyle.Render("ctrl+d: чтобы скачать файл в папку")
+	}
 
 	choices := fmt.Sprintf(
 		"%s\n%s\n%s\n%s\n%s\n\n%s\n",

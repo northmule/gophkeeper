@@ -15,6 +15,7 @@ type Manager struct {
 	textData       *TextData
 	fileData       *FileData
 	gridData       *GridData
+	itemData       *ItemData
 
 	cfg *config.Config
 }
@@ -28,6 +29,7 @@ func NewManager(cfg *config.Config, logger *logger.Logger) *Manager {
 		textData:       NewTextData(cfg, logger),
 		fileData:       NewFileData(cfg, logger),
 		gridData:       NewGridData(cfg, logger),
+		itemData:       NewItemData(cfg, logger),
 	}
 }
 
@@ -38,6 +40,7 @@ type ManagerController interface {
 	TextData() *TextData
 	FileData() *FileData
 	GridData() *GridData
+	ItemData() *ItemData
 }
 
 // Authentication контроллер
@@ -63,4 +66,9 @@ func (manager *Manager) FileData() *FileData {
 // GridData контроллер
 func (manager *Manager) GridData() *GridData {
 	return manager.gridData
+}
+
+// ItemData контроллер
+func (manager *Manager) ItemData() *ItemData {
+	return manager.itemData
 }

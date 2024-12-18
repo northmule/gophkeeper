@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 
 	"github.com/northmule/gophkeeper/internal/common/models"
@@ -43,12 +44,15 @@ func (r *MetaDataRepository) FindOneByUUID(ctx context.Context, uuid string) ([]
 	var metaDataList []models.MetaData
 	for rows.Next() {
 		data := models.MetaData{}
-		metaValue := models.MetaDataValue{}
-		err = rows.Scan(&data.ID, &data.MetaName, &metaValue.Value, &data.DataUUID)
+		var jsonbValue string
+		err = rows.Scan(&data.ID, &data.MetaName, &jsonbValue, &data.DataUUID)
 		if err != nil {
 			return nil, ErrorMsg(err)
 		}
-		data.MetaValue = metaValue
+		err = json.Unmarshal([]byte(jsonbValue), &data.MetaValue)
+		if err != nil {
+			return nil, ErrorMsg(err)
+		}
 		metaDataList = append(metaDataList, data)
 	}
 

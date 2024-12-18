@@ -8,6 +8,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"path"
 
 	"github.com/northmule/gophkeeper/internal/client/config"
 	"github.com/northmule/gophkeeper/internal/client/logger"
@@ -110,6 +111,49 @@ func (c *FileData) UploadFile(token string, url string, file *os.File) error {
 		return err
 	}
 	defer response.Body.Close()
+
+	return nil
+}
+
+func (c *FileData) DownLoadFile(token string, fileName string, dataUUID string) error {
+	requestURL := fmt.Sprintf("%s/api/v1/file_data/get/%s/%s", c.cfg.Value().ServerAddress, dataUUID, "0")
+	ctx := context.Background()
+
+	requestPrepare, err := http.NewRequestWithContext(ctx, http.MethodPost, requestURL, nil)
+	if err != nil {
+		return err
+	}
+	requestPrepare.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
+	client := &http.Client{}
+	response, err := client.Do(requestPrepare)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode == http.StatusUnauthorized {
+		bodyRaw, _ := io.ReadAll(response.Body)
+		return fmt.Errorf(string(bodyRaw))
+	}
+
+	if response.StatusCode == http.StatusBadRequest {
+		bodyRaw, _ := io.ReadAll(response.Body)
+		return fmt.Errorf(string(bodyRaw))
+	}
+
+	if response.StatusCode != http.StatusOK {
+		bodyRaw, _ := io.ReadAll(response.Body)
+		return fmt.Errorf(string(bodyRaw), response.StatusCode)
+	}
+
+	f, err := os.OpenFile(path.Join(c.cfg.Value().FilePath, fileName), os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(f, response.Body)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

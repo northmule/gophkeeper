@@ -14,6 +14,7 @@ type pageCardData struct {
 	Choice          int
 	Chosen          bool
 	mainPage        *pageIndex
+	gridPage        *pageDataGrid
 	responseMessage string
 
 	// идентификатор редактирования
@@ -29,6 +30,8 @@ type pageCardData struct {
 	currentAccountNumber textinput.Model
 	meta1                textinput.Model
 	meta2                textinput.Model
+
+	isEditable bool
 }
 
 func newPageCardData(mainPage *pageIndex) pageCardData {
@@ -101,6 +104,36 @@ func newPageCardData(mainPage *pageIndex) pageCardData {
 	return m
 }
 
+// SetEditableData значения для редактирования
+func (m pageCardData) SetEditableData(data *model_data.CardDataRequest) pageCardData {
+	m.uuid = data.UUID
+	m.name.SetValue(data.Name)
+	m.cardNumber.SetValue(data.CardNumber)
+	m.validityPeriod.SetValue(data.ValidityPeriod)
+	m.securityCode.SetValue(data.SecurityCode)
+	m.fullNameHolder.SetValue(data.FullNameHolder)
+	m.nameBank.SetValue(data.NameBank)
+	m.phoneHolder.SetValue(data.PhoneHolder)
+	m.currentAccountNumber.SetValue(data.CurrentAccountNumber)
+
+	if v, ok := data.Meta[data_type.MetaNameNote]; ok {
+		m.meta1.SetValue(v)
+	}
+	if v, ok := data.Meta[data_type.MetaNameWebSite]; ok {
+		m.meta2.SetValue(v)
+	}
+
+	m.isEditable = true
+
+	return m
+}
+
+func (m pageCardData) SetPageGrid(page *pageDataGrid) pageCardData {
+	m.gridPage = page
+
+	return m
+}
+
 func (m pageCardData) Init() tea.Cmd {
 	return textinput.Blink
 }
@@ -152,6 +185,9 @@ func (m pageCardData) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			if m.Choice == 11 {
+				if m.isEditable {
+					return m.gridPage, nil
+				}
 				return newPageAction(m.mainPage), nil
 			}
 		}

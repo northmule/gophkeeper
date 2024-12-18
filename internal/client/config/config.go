@@ -12,6 +12,7 @@ type Config struct {
 type ServerConfig struct {
 	ServerAddress string `mapstructure:"ServerAddress"`
 	LogLevel      string `mapstructure:"LogLever"`
+	FilePath      string `mapstructure:"FilePath"`
 }
 
 type ErrorCfg error

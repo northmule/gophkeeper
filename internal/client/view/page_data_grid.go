@@ -72,16 +72,29 @@ func (m pageDataGrid) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "esc":
-			if m.table.Focused() {
-				m.table.Blur()
-			} else {
-				m.table.Focus()
-			}
 		case "ctrl+c":
 			return m.actionPage, nil
 		case "enter":
 			dataUUID := m.table.SelectedRow()[3]
+
+			itemResponse, err := m.mainPage.managerController.ItemData().Send(m.mainPage.storage.Token(), dataUUID)
+			if err != nil {
+				return m, tea.Batch(
+					tea.Printf("Произошла ошибка: %s!", err),
+				)
+			}
+			if itemResponse.IsCard {
+				return newPageCardData(m.mainPage).SetEditableData(&itemResponse.CardData).SetPageGrid(&m), nil
+			}
+
+			if itemResponse.IsText {
+				return newPageTextData(m.mainPage).SetEditableData(&itemResponse.TextData).SetPageGrid(&m), nil
+			}
+
+			if itemResponse.IsFile {
+				return newPageFileData(m.mainPage).SetEditableData(&itemResponse.FileData).SetPageGrid(&m), nil
+			}
+
 			return m, tea.Batch(
 				tea.Printf("Выбраны данные %s!", dataUUID),
 			)

@@ -15,6 +15,7 @@ type pageTextData struct {
 	Choice          int
 	Chosen          bool
 	mainPage        *pageIndex
+	gridPage        *pageDataGrid
 	responseMessage string
 
 	// идентификатор редактирования
@@ -24,6 +25,8 @@ type pageTextData struct {
 	text  textarea.Model
 	meta1 textinput.Model
 	meta2 textinput.Model
+
+	isEditable bool
 }
 
 func newPageTextData(mainPage *pageIndex) pageTextData {
@@ -56,6 +59,30 @@ func newPageTextData(mainPage *pageIndex) pageTextData {
 	m.text = text
 	m.meta1 = meta1
 	m.meta2 = meta2
+
+	return m
+}
+
+// SetEditableData значения для редактирования
+func (m pageTextData) SetEditableData(data *model_data.TextDataRequest) pageTextData {
+	m.uuid = data.UUID
+	m.name.SetValue(data.Name)
+	m.text.SetValue(data.Value)
+
+	if v, ok := data.Meta[data_type.MetaNameNote]; ok {
+		m.meta1.SetValue(v)
+	}
+	if v, ok := data.Meta[data_type.MetaNameWebSite]; ok {
+		m.meta2.SetValue(v)
+	}
+
+	m.isEditable = true
+
+	return m
+}
+
+func (m pageTextData) SetPageGrid(page *pageDataGrid) pageTextData {
+	m.gridPage = page
 
 	return m
 }
@@ -105,6 +132,9 @@ func (m pageTextData) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			if m.Choice == 5 {
+				if m.isEditable {
+					return m.gridPage, nil
+				}
 				return newPageAction(m.mainPage), nil
 			}
 		}

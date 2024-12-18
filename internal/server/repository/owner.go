@@ -109,6 +109,7 @@ left join card_data cd on cd."uuid"  = o.data_uuid
 left join file_data fd on fd."uuid"  = o.data_uuid 
 left join text_data td on td."uuid"  = o.data_uuid 
 where o.user_uuid  = $1
+order by o.id asc
 offset $2 limit $3
 `
 
