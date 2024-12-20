@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/northmule/gophkeeper/internal/client/config"
 	"github.com/northmule/gophkeeper/internal/client/logger"
+	"github.com/northmule/gophkeeper/internal/client/service"
 )
 
 // Manager менеджер контроллеров
@@ -16,21 +17,29 @@ type Manager struct {
 	fileData       *FileData
 	gridData       *GridData
 	itemData       *ItemData
+	keysData       *KeysData
 
 	cfg *config.Config
 }
 
 // NewManager конструктор
-func NewManager(cfg *config.Config, logger *logger.Logger) *Manager {
+func NewManager(cfg *config.Config, logger *logger.Logger) (*Manager, error) {
+
+	cryptService, err := service.NewCrypt(cfg)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Manager{
 		logger:         logger,
 		authentication: NewAuthentication(cfg, logger),
-		cardData:       NewCardData(cfg, logger),
-		textData:       NewTextData(cfg, logger),
+		cardData:       NewCardData(cfg, cryptService, logger),
+		textData:       NewTextData(cfg, cryptService, logger),
 		fileData:       NewFileData(cfg, logger),
 		gridData:       NewGridData(cfg, logger),
 		itemData:       NewItemData(cfg, logger),
-	}
+		keysData:       NewKeysData(cfg, cryptService, logger),
+	}, nil
 }
 
 // ManagerController интерфейс для передачи в модели
@@ -41,6 +50,7 @@ type ManagerController interface {
 	FileData() *FileData
 	GridData() *GridData
 	ItemData() *ItemData
+	KeysData() *KeysData
 }
 
 // Authentication контроллер
@@ -71,4 +81,9 @@ func (manager *Manager) GridData() *GridData {
 // ItemData контроллер
 func (manager *Manager) ItemData() *ItemData {
 	return manager.itemData
+}
+
+// KeysData контроллер
+func (manager *Manager) KeysData() *KeysData {
+	return manager.keysData
 }

@@ -66,20 +66,32 @@ func (m pageAuthentication) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				r, err := m.mainPage.managerController.Authentication().Send(m.login.Value(), m.password.Value())
 				if err != nil {
 					m.responseMessage = err.Error()
-					go func() {
-						time.Sleep(3 * time.Second) // todo так не работает
-						m.responseMessage = ""
-						m.login.Update(msg)
-					}()
+					return m, tea.Batch(cmd, clearErrorAfter(3*time.Second))
+				}
 
-					return m, nil
+				// Сохранём токен
+				m.mainPage.storage.SetToken(r.Value)
+				// Отправляем публичный ключ клиента на сервер
+				err = m.mainPage.managerController.KeysData().UploadClientPublicKey(m.mainPage.storage.Token())
+				if err != nil {
+					m.responseMessage = err.Error()
+					return m, tea.Batch(cmd, clearErrorAfter(3*time.Second))
+				}
+				// Забираем публичный ключ с сервера
+				err = m.mainPage.managerController.KeysData().DownloadPublicServerKey(m.mainPage.storage.Token())
+				if err != nil {
+					m.responseMessage = err.Error()
+					return m, tea.Batch(cmd, clearErrorAfter(3*time.Second))
+				}
+				// Отправка приватного ключа (ключ отправляется зашифрованным публичным серверным)
+				err = m.mainPage.managerController.KeysData().UploadClientPrivateKey(m.mainPage.storage.Token())
+				if err != nil {
+					m.responseMessage = err.Error()
+					return m, tea.Batch(cmd, clearErrorAfter(3*time.Second))
 				}
 				// Авторизация успешна, отображаем следующее меню
 				m.responseMessage = "Вы авторизованы"
-				// Сохранём токен
-				m.mainPage.storage.SetToken(r.Value)
-
-				return newPageAction(m.mainPage), nil
+				return newPageAction(m.mainPage), tea.Batch(cmd, clearErrorAfter(3*time.Second))
 			}
 
 			if m.Choice == 3 {

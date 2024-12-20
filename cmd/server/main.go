@@ -2,16 +2,21 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"log"
+	"math/big"
 	"net"
 	"net/http"
+	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
 	"github.com/northmule/gophkeeper/db"
+	"github.com/northmule/gophkeeper/internal/common/keys"
+	"github.com/northmule/gophkeeper/internal/common/keys/signers"
 	"github.com/northmule/gophkeeper/internal/server/api/handlers"
 	"github.com/northmule/gophkeeper/internal/server/config"
 	"github.com/northmule/gophkeeper/internal/server/logger"
@@ -65,6 +70,39 @@ func run(ctx context.Context) error {
 	repositoryManager, err := repository.NewManager(store.DB)
 	if err != nil {
 		return err
+	}
+
+	serialNumber, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), 128))
+	if err != nil {
+		return err
+	}
+
+	log.Info("Preparing server keys")
+	serverKeys := keys.NewKeys(keys.Options{
+		Generator:    signers.NewRsaSigner(),
+		SavePath:     cfg.Value().PathKeys,
+		Organization: "Go32_Server",
+		Country:      "RU",
+		SerialNumber: serialNumber,
+	})
+
+	var errKeys []error
+	if _, err = os.Stat(serverKeys.PrivateKeyPath()); errors.Is(err, os.ErrNotExist) {
+		errKeys = append(errKeys, fmt.Errorf("private key file does not exist"))
+	}
+	if _, err = os.Stat(serverKeys.PublicKeyPath()); errors.Is(err, os.ErrNotExist) {
+		errKeys = append(errKeys, fmt.Errorf("public key file does not exist"))
+	}
+	if _, err = os.Stat(serverKeys.CertPath()); errors.Is(err, os.ErrNotExist) {
+		errKeys = append(errKeys, fmt.Errorf("cert file does not exist"))
+	}
+
+	if cfg.Value().OverwriteKeys || len(errKeys) > 0 {
+		log.Info("Creating Server Keys")
+		err = serverKeys.InitSelfSigned()
+		if err != nil {
+			return err
+		}
 	}
 
 	log.Info("Preparing the server for launch")

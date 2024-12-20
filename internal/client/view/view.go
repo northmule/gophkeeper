@@ -26,7 +26,10 @@ func NewClientView(cfg *config.Config, log *logger.Logger) *ClientView {
 // InitMain подготовка консольных форм
 func (v *ClientView) InitMain(ctx context.Context) error {
 
-	manager := controller.NewManager(v.cfg, v.log)
+	manager, err := controller.NewManager(v.cfg, v.log)
+	if err != nil {
+		return err
+	}
 	memoryStorage := storage.NewMemoryStorage()
 
 	p := tea.NewProgram(newPageIndex(manager, memoryStorage, v.log))

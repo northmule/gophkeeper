@@ -8,6 +8,7 @@ import (
 	"github.com/northmule/gophkeeper/internal/server/config"
 	"github.com/northmule/gophkeeper/internal/server/logger"
 	"github.com/northmule/gophkeeper/internal/server/repository"
+	service "github.com/northmule/gophkeeper/internal/server/services"
 	"github.com/northmule/gophkeeper/internal/server/services/access"
 	"github.com/northmule/gophkeeper/internal/server/storage"
 )
@@ -36,6 +37,10 @@ func (ar *AppRoutes) DefiningAppRoutes() chi.Router {
 
 	//Сервисы
 	accessService := access.NewAccess(ar.cfg)
+	cryptService, err := service.NewCrypt(ar.cfg)
+	if err != nil {
+		ar.log.Error(err)
+	}
 
 	// Обработчики
 	healthHandler := NewHealthHandler(ar.log)
@@ -47,6 +52,8 @@ func (ar *AppRoutes) DefiningAppRoutes() chi.Router {
 	textDataHandler := NewTextDataHandler(accessService, ar.manager, ar.log)
 	fileDataHandler := NewFileDataHandler(accessService, ar.manager, ar.cfg, ar.log)
 	itemDataHandler := NewItemDataHandler(accessService, ar.manager, ar.log)
+	keysDataHandler := NewKeysDataHandler(accessService, cryptService, ar.manager, ar.cfg, ar.log)
+	decryptDataHandler := NewDecryptDataHandler(accessService, ar.manager, ar.log)
 
 	r := chi.NewRouter()
 
@@ -60,7 +67,27 @@ func (ar *AppRoutes) DefiningAppRoutes() chi.Router {
 	r.Route("/api/v1", func(r chi.Router) {
 		// Для авторизованных api
 		r.Group(func(r chi.Router) {
+			// Начальный jwt объект
 			jwtTokenObject := accessService.FillJWTToken()
+
+			// приём от клиента публичного ключа
+			r.With(
+				jwtauth.Verify(jwtTokenObject, accessService.FindTokenByRequest),
+				jwtauth.Authenticator(jwtTokenObject),
+			).Post("/save_public_key", keysDataHandler.HandleSaveClientPublicKey)
+
+			// приём от клиента приватного ключа(aes используется для шифрования данных)
+			r.With(
+				jwtauth.Verify(jwtTokenObject, accessService.FindTokenByRequest),
+				jwtauth.Authenticator(jwtTokenObject),
+			).Post("/save_client_private_key", keysDataHandler.HandleSaveClientPrivateKey)
+
+			// Клиент забирает публичный ключ сервера
+			r.With(
+				jwtauth.Verify(jwtTokenObject, accessService.FindTokenByRequest),
+				jwtauth.Authenticator(jwtTokenObject),
+			).Post("/download_server_public_key", keysDataHandler.HandleDownloadServerPublicKey)
+
 			// список сохранённых данных
 			r.With(
 				jwtauth.Verify(jwtTokenObject, accessService.FindTokenByRequest),
@@ -77,6 +104,7 @@ func (ar *AppRoutes) DefiningAppRoutes() chi.Router {
 			r.With(
 				jwtauth.Verify(jwtTokenObject, accessService.FindTokenByRequest),
 				jwtauth.Authenticator(jwtTokenObject),
+				decryptDataHandler.HandleDecryptData, // расшифровка тела запроса
 				NewValidatorHandler(new(cardDataRequest), ar.log).HandleValidation,
 			).Post("/save_card_data", cardDataHandler.HandleSave)
 
@@ -84,6 +112,7 @@ func (ar *AppRoutes) DefiningAppRoutes() chi.Router {
 			r.With(
 				jwtauth.Verify(jwtTokenObject, accessService.FindTokenByRequest),
 				jwtauth.Authenticator(jwtTokenObject),
+				decryptDataHandler.HandleDecryptData, // расшифровка тела запроса
 				NewValidatorHandler(new(textDataRequest), ar.log).HandleValidation,
 			).Post("/save_text_data", textDataHandler.HandleSave)
 

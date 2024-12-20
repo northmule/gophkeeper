@@ -8,8 +8,8 @@ FilePath: "/tmp"
 #ClearData: "yes" # yes/no
 ServerPublicKey: "k_server.pub"
 # Путь для сохранения публичного и приватного ключей клиента
-PathKeys: "/home/djo/Загрузки/load_project/client"
-# Путь к папке с публичным ключем сервера
-PathPublicKeyServer: "/home/djo/Загрузки/load_project/public_server"
-# Перезаписывать клиентские ключи при старте клиента
+PathKeys: "/home/user"
+# Путь к публичному ключу сервера
+PathPublicKeyServer:
+# Перезаписывать ключи при старте клиента
 OverwriteKeys: false

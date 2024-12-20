@@ -4,17 +4,26 @@ import (
 	"github.com/spf13/viper"
 )
 
+// Config конфигурация клиента
 type Config struct {
 	v     *viper.Viper
 	value *ServerConfig
 }
 
+// ServerConfig структура конфигурации клиента
 type ServerConfig struct {
 	ServerAddress string `mapstructure:"ServerAddress"`
 	LogLevel      string `mapstructure:"LogLever"`
 	FilePath      string `mapstructure:"FilePath"`
+	// Путь для сохранения публичного и приватного ключей клиента
+	PathKeys string `json:"PathKeys"`
+	// Путь к папке с публичным ключем сервера
+	PathPublicKeyServer string `json:"PathPublicKeyServer"`
+	// Перезаписывать клиентские ключи при старте клиента
+	OverwriteKeys bool `json:"OverwriteKeys"`
 }
 
+// ErrorCfg ошибка конфигурации
 type ErrorCfg error
 
 func NewConfig() *Config {
@@ -24,6 +33,7 @@ func NewConfig() *Config {
 	return instance
 }
 
+// Init инициализация настроек из файла
 func (c *Config) Init() error {
 	var err error
 	c.v.AddConfigPath(".")

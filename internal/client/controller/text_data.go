@@ -8,6 +8,7 @@ import (
 
 	"github.com/northmule/gophkeeper/internal/client/config"
 	"github.com/northmule/gophkeeper/internal/client/logger"
+	"github.com/northmule/gophkeeper/internal/client/service"
 	"github.com/northmule/gophkeeper/internal/common/model_data"
 	"golang.org/x/net/context"
 )
@@ -16,13 +17,15 @@ import (
 type TextData struct {
 	logger *logger.Logger
 	cfg    *config.Config
+	crypt  *service.Crypt
 }
 
 // NewTextData конструктор
-func NewTextData(cfg *config.Config, logger *logger.Logger) *TextData {
+func NewTextData(cfg *config.Config, crypt *service.Crypt, logger *logger.Logger) *TextData {
 	return &TextData{
-		logger: logger,
 		cfg:    cfg,
+		crypt:  crypt,
+		logger: logger,
 	}
 }
 
@@ -40,6 +43,14 @@ func (c *TextData) Send(token string, requestData *model_data.TextDataRequest) (
 		c.logger.Error(err)
 		return nil, err
 	}
+
+	// Шифруем
+	requestBody, err = c.crypt.EncryptAES(requestBody)
+	if err != nil {
+		c.logger.Error(err)
+		return nil, err
+	}
+
 	buf := bytes.NewBuffer(requestBody)
 	requestPrepare, err := http.NewRequestWithContext(ctx, http.MethodPost, requestURL, buf)
 	if err != nil {

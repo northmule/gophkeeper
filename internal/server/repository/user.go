@@ -25,7 +25,7 @@ func NewUserRepository(store storage.DBQuery) (*UserRepository, error) {
 		store: store,
 	}
 	var err error
-	instance.sqlFindByLogin, err = store.Prepare(`select id, login, password, created_at, uuid, email from users where login = $1 limit 1`)
+	instance.sqlFindByLogin, err = store.Prepare(`select id, login, password, created_at, uuid, email, public_key, private_client_key from users where login = $1 limit 1`)
 	if err != nil {
 		return nil, ErrorMsg(err)
 	}
@@ -35,7 +35,7 @@ func NewUserRepository(store storage.DBQuery) (*UserRepository, error) {
 		return nil, ErrorMsg(err)
 	}
 
-	instance.sqlFindByUUID, err = store.Prepare(`select id, login, password, created_at, uuid, email from users where uuid = $1 limit 1`)
+	instance.sqlFindByUUID, err = store.Prepare(`select id, login, password, created_at, uuid, email, public_key, private_client_key from users where uuid = $1 limit 1`)
 	if err != nil {
 		return nil, ErrorMsg(err)
 	}
@@ -57,7 +57,7 @@ func (r *UserRepository) FindOneByLogin(ctx context.Context, login string) (*mod
 	}
 
 	if rows.Next() {
-		err = rows.Scan(&user.ID, &user.Login, &user.Password, &user.CreatedAt, &user.UUID, &user.Email)
+		err = rows.Scan(&user.ID, &user.Login, &user.Password, &user.CreatedAt, &user.UUID, &user.Email, &user.PublicKey, &user.PrivateClientKey)
 		if err != nil {
 			return nil, ErrorMsg(err)
 		}
@@ -80,7 +80,7 @@ func (r *UserRepository) FindOneByUUID(ctx context.Context, uuid string) (*model
 	}
 
 	if rows.Next() {
-		err = rows.Scan(&user.ID, &user.Login, &user.Password, &user.CreatedAt, &user.UUID, &user.Email)
+		err = rows.Scan(&user.ID, &user.Login, &user.Password, &user.CreatedAt, &user.UUID, &user.Email, &user.PublicKey, &user.PrivateClientKey)
 		if err != nil {
 			return nil, ErrorMsg(err)
 		}
@@ -123,4 +123,30 @@ func (r *UserRepository) TxCreateNewUser(ctx context.Context, tx storage.TxDBQue
 		return 0, ErrorMsg(err)
 	}
 	return id, nil
+}
+
+// SetPublicKey вставка значения публичного ключа
+func (r *UserRepository) SetPublicKey(ctx context.Context, data string, userUUID string) error {
+	ctx, cancel := context.WithTimeout(ctx, timeOut)
+	defer cancel()
+	rows := r.store.QueryRowContext(ctx, `update users set public_key = $1 where uuid = $2`, data, userUUID)
+	err := rows.Err()
+	if err != nil {
+		return ErrorMsg(err)
+	}
+
+	return nil
+}
+
+// SetPrivateClientKey вставка значения публичного ключа
+func (r *UserRepository) SetPrivateClientKey(ctx context.Context, data string, userUUID string) error {
+	ctx, cancel := context.WithTimeout(ctx, timeOut)
+	defer cancel()
+	rows := r.store.QueryRowContext(ctx, `update users set private_client_key = $1 where uuid = $2`, data, userUUID)
+	err := rows.Err()
+	if err != nil {
+		return ErrorMsg(err)
+	}
+
+	return nil
 }
