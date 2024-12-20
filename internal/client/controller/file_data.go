@@ -12,6 +12,7 @@ import (
 
 	"github.com/northmule/gophkeeper/internal/client/config"
 	"github.com/northmule/gophkeeper/internal/client/logger"
+	"github.com/northmule/gophkeeper/internal/client/service"
 	"github.com/northmule/gophkeeper/internal/common/data_type"
 	"github.com/northmule/gophkeeper/internal/common/model_data"
 	"golang.org/x/net/context"
@@ -21,13 +22,15 @@ import (
 type FileData struct {
 	logger *logger.Logger
 	cfg    *config.Config
+	crypt  *service.Crypt
 }
 
 // NewFileData конструктор
-func NewFileData(cfg *config.Config, logger *logger.Logger) *FileData {
+func NewFileData(cfg *config.Config, crypt *service.Crypt, logger *logger.Logger) *FileData {
 	return &FileData{
 		logger: logger,
 		cfg:    cfg,
+		crypt:  crypt,
 	}
 }
 
@@ -43,6 +46,12 @@ func (c *FileData) Send(token string, requestData *model_data.FileDataInitReques
 
 	requestBody, err := json.Marshal(requestData)
 	if err != nil {
+		return nil, err
+	}
+	// Шифруем
+	requestBody, err = c.crypt.EncryptAES(requestBody)
+	if err != nil {
+		c.logger.Error(err)
 		return nil, err
 	}
 	buf := bytes.NewBuffer(requestBody)

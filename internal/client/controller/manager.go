@@ -35,7 +35,7 @@ func NewManager(cfg *config.Config, logger *logger.Logger) (*Manager, error) {
 		authentication: NewAuthentication(cfg, logger),
 		cardData:       NewCardData(cfg, cryptService, logger),
 		textData:       NewTextData(cfg, cryptService, logger),
-		fileData:       NewFileData(cfg, logger),
+		fileData:       NewFileData(cfg, cryptService, logger),
 		gridData:       NewGridData(cfg, logger),
 		itemData:       NewItemData(cfg, logger),
 		keysData:       NewKeysData(cfg, cryptService, logger),

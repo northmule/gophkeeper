@@ -120,6 +120,7 @@ func (ar *AppRoutes) DefiningAppRoutes() chi.Router {
 			r.With(
 				jwtauth.Verify(jwtTokenObject, accessService.FindTokenByRequest),
 				jwtauth.Authenticator(jwtTokenObject),
+				decryptDataHandler.HandleDecryptData, // расшифровка тела запроса
 				NewValidatorHandler(new(fileDataInitRequest), ar.log).HandleValidation,
 			).Post("/file_data/init", fileDataHandler.HandleInit)
 
