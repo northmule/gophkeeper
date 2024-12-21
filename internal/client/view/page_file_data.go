@@ -190,6 +190,7 @@ func (m pageFileData) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			err := m.mainPage.managerController.FileData().DownLoadFile(m.mainPage.storage.Token(), m.fileName, m.uuid)
 			if err != nil {
 				m.responseMessage = err.Error()
+				return m, tea.Batch(cmd, clearErrorAfter(3*time.Second))
 			}
 			m.responseMessage = "Файл получен"
 			return m, tea.Batch(cmd, clearErrorAfter(3*time.Second))

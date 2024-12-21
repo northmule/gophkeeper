@@ -130,7 +130,15 @@ func (ar *AppRoutes) DefiningAppRoutes() chi.Router {
 			r.With(
 				jwtauth.Verify(jwtTokenObject, accessService.FindTokenByRequest),
 				jwtauth.Authenticator(jwtTokenObject),
-			).Post("/file_data/{action}/{file_uuid}/{part}", fileDataHandler.HandleAction)
+				decryptDataHandler.HandleDecryptData, // расшифровка тела запроса
+			).Post("/file_data/load/{file_uuid}/{part}", fileDataHandler.HandleAction)
+
+			// отдача файла клиенту
+			r.With(
+				jwtauth.Verify(jwtTokenObject, accessService.FindTokenByRequest),
+				jwtauth.Authenticator(jwtTokenObject),
+				decryptDataHandler.HandleEncryptData, // шифрует исходящий запрос
+			).Post("/file_data/get/{file_uuid}/{part}", fileDataHandler.HandleGetAction)
 
 		})
 

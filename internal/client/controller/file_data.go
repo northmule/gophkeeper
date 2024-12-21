@@ -93,6 +93,7 @@ func (c *FileData) Send(token string, requestData *model_data.FileDataInitReques
 	return responseData, nil
 }
 
+// UploadFile отправка файла на сервер
 func (c *FileData) UploadFile(token string, url string, file *os.File) error {
 	requestURL := fmt.Sprintf("%s/api/v1%s", c.cfg.Value().ServerAddress, url)
 	body := &bytes.Buffer{}
@@ -107,8 +108,22 @@ func (c *FileData) UploadFile(token string, url string, file *os.File) error {
 	if err != nil {
 		return err
 	}
+
+	var buf []byte
+	// Шифруем файл
+	buf, err = c.crypt.EncryptAES(body.Bytes())
+	if err != nil {
+		c.logger.Error(err)
+		return err
+	}
+	bodyCrypt := &bytes.Buffer{}
+	_, err = bodyCrypt.Write(buf)
+	if err != nil {
+		c.logger.Error(err)
+		return err
+	}
 	ctx := context.Background()
-	requestPrepare, err := http.NewRequestWithContext(ctx, http.MethodPost, requestURL, body)
+	requestPrepare, err := http.NewRequestWithContext(ctx, http.MethodPost, requestURL, bodyCrypt)
 	if err != nil {
 		return err
 	}
@@ -159,7 +174,18 @@ func (c *FileData) DownLoadFile(token string, fileName string, dataUUID string) 
 	if err != nil {
 		return err
 	}
-	_, err = io.Copy(f, response.Body)
+	bodyRaw, err := io.ReadAll(response.Body)
+	if err != nil {
+		c.logger.Error(err)
+		return err
+	}
+	// Расшифровка тела
+	bodyRaw, err = c.crypt.DecryptAES(bodyRaw)
+	if err != nil {
+		c.logger.Error(err)
+		return err
+	}
+	_, err = f.Write(bodyRaw)
 	if err != nil {
 		return err
 	}

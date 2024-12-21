@@ -20,28 +20,21 @@ import (
 
 // FileDataHandler обработка запросо на сохранение файлов
 type FileDataHandler struct {
-	log            *logger.Logger
-	accessService  *access.Access
-	manager        repository.Repository
-	expectedAction map[string]bool
+	log           *logger.Logger
+	accessService *access.Access
+	manager       repository.Repository
 
 	cfg *config.Config
 }
 
 // NewFileDataHandler конструктор
 func NewFileDataHandler(accessService *access.Access, manager repository.Repository, cfg *config.Config, log *logger.Logger) *FileDataHandler {
-	expectedAction := make(map[string]bool)
-
-	expectedAction["load"] = true // для загрузки файлов от клиента
-	expectedAction["finish"] = true
-	expectedAction["get"] = true // для запроса файлов клиентом
 
 	return &FileDataHandler{
-		accessService:  accessService,
-		manager:        manager,
-		log:            log,
-		expectedAction: expectedAction,
-		cfg:            cfg,
+		accessService: accessService,
+		manager:       manager,
+		log:           log,
+		cfg:           cfg,
 	}
 }
 
@@ -218,22 +211,14 @@ func (h *FileDataHandler) HandleAction(res http.ResponseWriter, req *http.Reques
 	var (
 		err         error
 		userUUID    string
-		pathAction  string
 		dataUUID    string
 		pathPart    string
 		owner       *models.Owner
 		errResponse *ErrResponse
 	)
 
-	pathAction = chi.URLParam(req, "action")
 	dataUUID = chi.URLParam(req, "file_uuid")
 	pathPart = chi.URLParam(req, "part")
-
-	if flag, ok := h.expectedAction[pathAction]; !ok || !flag {
-		h.log.Info("Expected action: '%v', actual: '%s'", h.expectedAction, pathAction)
-		_ = render.Render(res, req, ErrNotFound)
-		return
-	}
 
 	userUUID, err = h.accessService.GetUserUUIDByJWTToken(req.Context())
 	if err != nil {
@@ -255,13 +240,52 @@ func (h *FileDataHandler) HandleAction(res http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	if pathAction == "get" {
-		errResponse = h.downLoadFile(res, req, dataUUID)
+	errResponse = h.loadFile(req, dataUUID)
+
+	if errResponse != nil {
+		h.log.Error(err)
+		_ = render.Render(res, req, errResponse)
+		return
+	}
+	_ = pathPart
+}
+
+// HandleGetAction отдаёт клиенту файл
+func (h *FileDataHandler) HandleGetAction(res http.ResponseWriter, req *http.Request) {
+	var (
+		err      error
+		userUUID string
+
+		dataUUID    string
+		pathPart    string
+		owner       *models.Owner
+		errResponse *ErrResponse
+	)
+
+	dataUUID = chi.URLParam(req, "file_uuid")
+	pathPart = chi.URLParam(req, "part")
+
+	userUUID, err = h.accessService.GetUserUUIDByJWTToken(req.Context())
+	if err != nil {
+		h.log.Error(err)
+		_ = render.Render(res, req, ErrBadRequest)
+		return
 	}
 
-	if pathAction == "load" {
-		errResponse = h.loadFile(req, dataUUID)
+	// владелец данных
+	owner, err = h.manager.Owner().FindOneByUserUUIDAndDataUUIDAndDataType(req.Context(), userUUID, dataUUID, data_type.BinaryType)
+	if err != nil {
+		h.log.Error(err)
+		_ = render.Render(res, req, ErrBadRequest)
+		return
 	}
+	if owner == nil { // нет данных этого пользователя
+		h.log.Infof("owner not found: data_uuid: %s, user_uuid: %s, data_type: %s", dataUUID, userUUID, data_type.BinaryType)
+		_ = render.Render(res, req, ErrNotFound)
+		return
+	}
+
+	errResponse = h.downLoadFile(res, req, dataUUID)
 
 	if errResponse != nil {
 		h.log.Error(err)
