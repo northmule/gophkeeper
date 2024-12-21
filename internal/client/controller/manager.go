@@ -18,6 +18,7 @@ type Manager struct {
 	gridData       *GridData
 	itemData       *ItemData
 	keysData       *KeysData
+	registration   *Registration
 
 	cfg *config.Config
 }
@@ -36,9 +37,10 @@ func NewManager(cfg *config.Config, logger *logger.Logger) (*Manager, error) {
 		cardData:       NewCardData(cfg, cryptService, logger),
 		textData:       NewTextData(cfg, cryptService, logger),
 		fileData:       NewFileData(cfg, cryptService, logger),
-		gridData:       NewGridData(cfg, logger),
-		itemData:       NewItemData(cfg, logger),
+		gridData:       NewGridData(cfg, cryptService, logger),
+		itemData:       NewItemData(cfg, cryptService, logger),
 		keysData:       NewKeysData(cfg, cryptService, logger),
+		registration:   NewRegistration(cfg, logger),
 	}, nil
 }
 
@@ -51,6 +53,7 @@ type ManagerController interface {
 	GridData() *GridData
 	ItemData() *ItemData
 	KeysData() *KeysData
+	Registration() *Registration
 }
 
 // Authentication контроллер
@@ -86,4 +89,9 @@ func (manager *Manager) ItemData() *ItemData {
 // KeysData контроллер
 func (manager *Manager) KeysData() *KeysData {
 	return manager.keysData
+}
+
+// Registration контроллер
+func (manager *Manager) Registration() *Registration {
+	return manager.registration
 }

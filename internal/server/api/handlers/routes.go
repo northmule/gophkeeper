@@ -92,12 +92,14 @@ func (ar *AppRoutes) DefiningAppRoutes() chi.Router {
 			r.With(
 				jwtauth.Verify(jwtTokenObject, accessService.FindTokenByRequest),
 				jwtauth.Authenticator(jwtTokenObject),
+				decryptDataHandler.HandleEncryptData, // шифрует исходящий запрос
 			).Get("/items_list", itemsListHandler.HandleItemsList)
 
 			// Получить данные по uuid
 			r.With(
 				jwtauth.Verify(jwtTokenObject, accessService.FindTokenByRequest),
 				jwtauth.Authenticator(jwtTokenObject),
+				decryptDataHandler.HandleEncryptData, // шифрует исходящий запрос
 			).Get("/item_get/{uuid}", itemDataHandler.HandleItem)
 
 			// добавить/изменить данные банковской карты

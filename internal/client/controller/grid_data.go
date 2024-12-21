@@ -8,6 +8,7 @@ import (
 
 	"github.com/northmule/gophkeeper/internal/client/config"
 	"github.com/northmule/gophkeeper/internal/client/logger"
+	"github.com/northmule/gophkeeper/internal/client/service"
 	"github.com/northmule/gophkeeper/internal/common/model_data"
 	"golang.org/x/net/context"
 )
@@ -16,13 +17,15 @@ import (
 type GridData struct {
 	logger *logger.Logger
 	cfg    *config.Config
+	crypt  *service.Crypt
 }
 
 // NewGridData конструктор
-func NewGridData(cfg *config.Config, logger *logger.Logger) *GridData {
+func NewGridData(cfg *config.Config, crypt *service.Crypt, logger *logger.Logger) *GridData {
 	return &GridData{
 		logger: logger,
 		cfg:    cfg,
+		crypt:  crypt,
 	}
 }
 
@@ -60,6 +63,12 @@ func (c *GridData) Send(token string) (*GridDataResponse, error) {
 	}
 
 	bodyRaw, err := io.ReadAll(response.Body)
+	if err != nil {
+		c.logger.Error(err)
+		return nil, err
+	}
+	// Расшифровка тела
+	bodyRaw, err = c.crypt.DecryptAES(bodyRaw)
 	if err != nil {
 		c.logger.Error(err)
 		return nil, err

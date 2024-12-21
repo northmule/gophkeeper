@@ -9,6 +9,7 @@ import (
 
 	"github.com/northmule/gophkeeper/internal/client/config"
 	"github.com/northmule/gophkeeper/internal/client/logger"
+	"github.com/northmule/gophkeeper/internal/client/service"
 	"github.com/northmule/gophkeeper/internal/common/model_data"
 	"golang.org/x/net/context"
 )
@@ -17,13 +18,15 @@ import (
 type ItemData struct {
 	logger *logger.Logger
 	cfg    *config.Config
+	crypt  *service.Crypt
 }
 
 // NewItemData конструктор
-func NewItemData(cfg *config.Config, logger *logger.Logger) *ItemData {
+func NewItemData(cfg *config.Config, crypt *service.Crypt, logger *logger.Logger) *ItemData {
 	return &ItemData{
 		logger: logger,
 		cfg:    cfg,
+		crypt:  crypt,
 	}
 }
 
@@ -59,6 +62,12 @@ func (c *ItemData) Send(token string, dataUUID string) (*model_data.DataByUUIDRe
 	}
 
 	bodyRaw, err := io.ReadAll(response.Body)
+	if err != nil {
+		c.logger.Error(err)
+		return nil, err
+	}
+	// Расшифровка тела
+	bodyRaw, err = c.crypt.DecryptAES(bodyRaw)
 	if err != nil {
 		c.logger.Error(err)
 		return nil, err

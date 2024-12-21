@@ -59,7 +59,7 @@ func (m pageIndex) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return newPageAuthentication(&m), nil
 			}
 			if m.Choice == 1 {
-				return newPageHelp(&m), nil
+				return newPageRegistration(&m), nil
 			}
 			if m.Choice == 2 {
 				return newPageHelp(&m), nil

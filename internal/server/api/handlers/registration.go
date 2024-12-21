@@ -26,7 +26,7 @@ type RegistrationHandler struct {
 
 type registrationRequest struct {
 	Login    string `json:"login" validate:"required,min=3,max=50"`
-	Password string `json:"password" validate:"required,min=10,max=100"`
+	Password string `json:"password" validate:"required,min=3,max=30"`
 	Email    string `json:"email" validate:"required,email"`
 }
 
