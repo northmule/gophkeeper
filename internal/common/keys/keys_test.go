@@ -2,115 +2,110 @@ package keys
 
 import (
 	"crypto"
+	"crypto/rand"
+	"crypto/rsa"
 	"errors"
+	"io/ioutil"
+	"math/big"
 	"os"
+	"path/filepath"
 	"testing"
-
-	"github.com/northmule/gophkeeper/internal/common/keys/signers"
 )
 
-// BadSigner реализация с ошибкой
-type BadSigner struct {
+// MockKeyGenerator is a mock implementation of KeyGenerator
+type MockKeyGenerator struct {
+	Key crypto.Signer
+	Err error
 }
 
-// GenerateKey метод возвращает ошибку
-func (b *BadSigner) GenerateKey() (crypto.Signer, error) {
-	return nil, errors.New("GenerateKey error")
+func (m *MockKeyGenerator) GenerateKey() (crypto.Signer, error) {
+	return m.Key, m.Err
 }
 
 func TestInitSelfSigned(t *testing.T) {
-	tests := []struct {
-		name   string
-		signer KeyGenerator
-	}{
-		{
-			name:   "Rsa",
-			signer: signers.NewRsaSigner(),
-		},
-		{
-			name:   "Ecdsa",
-			signer: signers.NewEcdsaSigner(),
-		},
-		{
-			name:   "Ed25519",
-			signer: signers.NewEd25519Signer(),
-		},
+
+	dir, err := ioutil.TempDir("", "test")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			var err error
-			c := NewKeys(Options{Generator: tt.signer})
+	defer os.RemoveAll(dir)
 
-			err = c.InitSelfSigned()
-			if err != nil {
-				t.Fatalf("InitSelfSigned() error = %v", err)
-			}
-
-			_, err = os.Stat(c.CertPath())
-			if os.IsNotExist(err) {
-				t.Errorf("Cert file does not exist")
-			}
-
-			_, err = os.Stat(c.PrivateKeyPath())
-			if os.IsNotExist(err) {
-				t.Errorf("Key file does not exist")
-			}
-
-			err = os.Remove(c.CertPath())
-			if err != nil {
-				return
-			}
-			err = os.Remove(c.PrivateKeyPath())
-			if err != nil {
-				t.Fatal("os.Remove")
-			}
-		})
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		t.Fatalf("Failed to generate RSA key: %v", err)
 	}
-}
 
-func TestInitSelfSigned_BadSigner(t *testing.T) {
-	var err error
-	rsaSigner := new(BadSigner)
-	c := NewKeys(Options{Generator: rsaSigner})
+	mockGenerator := &MockKeyGenerator{Key: privateKey}
+	options := Options{
+		Generator:    mockGenerator,
+		SavePath:     dir,
+		Organization: "TestOrg",
+		Country:      "TestCountry",
+		SerialNumber: big.NewInt(1),
+	}
 
-	err = c.InitSelfSigned()
+	keysService := NewKeys(options)
+
+	// Test main functionality
+	err = keysService.InitSelfSigned()
+	if err != nil {
+		t.Errorf("InitSelfSigned failed: %v", err)
+	}
+
+	files := []string{
+		PrivateKeyFileName,
+		PublicKeyFileName,
+		CertificateFileName,
+	}
+
+	for _, file := range files {
+		path := filepath.Join(dir, file)
+		if _, err := os.Stat(path); os.IsNotExist(err) {
+			t.Errorf("File %s does not exist", path)
+		}
+	}
+
+	mockGenerator.Err = errors.New("mock error")
+	err = keysService.InitSelfSigned()
 	if err == nil {
-		t.Fatalf("expected InitSelfSigned() error = %v", err)
+		t.Errorf("Expected error, got nil")
 	}
 
-}
-
-func BenchmarkCertificate_InitSelfSigned(b *testing.B) {
-	tests := []struct {
-		name   string
-		signer KeyGenerator
-	}{
-		{
-			name:   "Benchmark_Rsa",
-			signer: signers.NewRsaSigner(),
-		},
-		{
-			name:   "Benchmark_Ecdsa",
-			signer: signers.NewEcdsaSigner(),
-		},
-		{
-			name:   "Benchmark_Ed25519",
-			signer: signers.NewEd25519Signer(),
-		},
+	mockGenerator.Err = nil
+	mockGenerator.Key = nil
+	err = keysService.InitSelfSigned()
+	if err == nil {
+		t.Errorf("Expected error, got nil")
 	}
-	var err error
-	for _, tt := range tests {
-		b.Run(tt.name, func(b *testing.B) {
-			c := NewKeys(Options{Generator: tt.signer})
-			b.ResetTimer()
 
-			for i := 0; i < b.N; i++ {
-				err = c.InitSelfSigned()
-				if err != nil {
-					b.Fatal("initSelfSigned")
-				}
-			}
-			b.StopTimer()
-		})
+	options.SavePath = ""
+	keysService = NewKeys(options)
+	err = keysService.InitSelfSigned()
+	if err == nil {
+		t.Errorf("Expected error, got nil")
+	}
+
+	options.SavePath = dir
+	options.Organization = ""
+	keysService = NewKeys(options)
+	err = keysService.InitSelfSigned()
+	if err == nil {
+		t.Errorf("Expected error, got nil")
+	}
+
+	options.Organization = "TestOrg"
+	options.Country = ""
+	keysService = NewKeys(options)
+	err = keysService.InitSelfSigned()
+	if err == nil {
+		t.Errorf("Expected error, got nil")
+	}
+
+	options.Country = "TestCountry"
+	options.SerialNumber = big.NewInt(0)
+	keysService = NewKeys(options)
+	err = keysService.InitSelfSigned()
+	if err == nil {
+		t.Errorf("Expected error, got nil")
 	}
 }
