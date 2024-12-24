@@ -1,0 +1,15 @@
+# Адрес сервера
+ServerAddress: "http://localhost:9097"
+# Уровень логирования
+LogLever: "info"
+# Папка для сохранения файлов
+FilePath: "/tmp"
+# Удалять файлы, данные и прочее после выхода из клиента
+#ClearData: "yes" # yes/no
+ServerPublicKey: "k_server.pub"
+# Путь для сохранения публичного и приватного ключей клиента
+PathKeys: "/home/user"
+# Путь к публичному ключу сервера
+PathPublicKeyServer:
+# Перезаписывать ключи при старте клиента
+OverwriteKeys: false
