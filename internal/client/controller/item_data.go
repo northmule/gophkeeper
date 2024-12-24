@@ -18,11 +18,11 @@ import (
 type ItemData struct {
 	logger *logger.Logger
 	cfg    *config.Config
-	crypt  *service.Crypt
+	crypt  service.Cryptographer
 }
 
 // NewItemData конструктор
-func NewItemData(cfg *config.Config, crypt *service.Crypt, logger *logger.Logger) *ItemData {
+func NewItemData(cfg *config.Config, crypt service.Cryptographer, logger *logger.Logger) *ItemData {
 	return &ItemData{
 		logger: logger,
 		cfg:    cfg,

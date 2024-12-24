@@ -58,9 +58,9 @@ func (s *MemoryStorage) AddMetaDataList(data models.MetaData) error {
 	s.mx.Lock()
 	defer s.mx.Unlock()
 	var isExist bool
-	for _, item := range s.metaDataList {
+	for k, item := range s.metaDataList {
 		if item.DataUUID == data.DataUUID {
-			item = data
+			s.metaDataList[k] = data
 			isExist = true
 		}
 	}

@@ -22,11 +22,11 @@ import (
 type KeysData struct {
 	logger *logger.Logger
 	cfg    *config.Config
-	crypt  *service.Crypt
+	crypt  service.Cryptographer
 }
 
 // NewKeysData конструктор
-func NewKeysData(cfg *config.Config, crypt *service.Crypt, logger *logger.Logger) *KeysData {
+func NewKeysData(cfg *config.Config, crypt service.Cryptographer, logger *logger.Logger) *KeysData {
 	return &KeysData{
 		logger: logger,
 		cfg:    cfg,
@@ -64,6 +64,12 @@ func (c *KeysData) UploadClientPublicKey(token string) error {
 	response, err := client.Do(requestPrepare)
 	if err != nil {
 		return err
+	}
+	if response.StatusCode == http.StatusUnauthorized {
+		return fmt.Errorf("вы не авторизованы")
+	}
+	if response.StatusCode != http.StatusOK {
+		return fmt.Errorf("не известная ошибка")
 	}
 	defer response.Body.Close()
 

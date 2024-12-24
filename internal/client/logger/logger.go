@@ -20,5 +20,7 @@ func NewLogger(level string) (*Logger, error) {
 		return nil, err
 	}
 
-	return &Logger{appLogger.Sugar()}, nil
+	logger := &Logger{appLogger.Sugar()}
+
+	return logger, nil
 }

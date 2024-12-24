@@ -17,11 +17,11 @@ import (
 type TextData struct {
 	logger *logger.Logger
 	cfg    *config.Config
-	crypt  *service.Crypt
+	crypt  service.Cryptographer
 }
 
 // NewTextData конструктор
-func NewTextData(cfg *config.Config, crypt *service.Crypt, logger *logger.Logger) *TextData {
+func NewTextData(cfg *config.Config, crypt service.Cryptographer, logger *logger.Logger) *TextData {
 	return &TextData{
 		cfg:    cfg,
 		crypt:  crypt,

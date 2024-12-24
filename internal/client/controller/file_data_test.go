@@ -19,9 +19,9 @@ func makeMockConfig(server string) *config.Config {
 	validConfig := `
 ServerAddress: "{ServerAddress}"
 LogLevel: "info"
-FilePath: "/tmp"
-PathKeys: "/tmp"
-PathPublicKeyServer: "/tmp"
+FilePath: ""
+PathKeys: ""
+PathPublicKeyServer: ""
 OverwriteKeys: false
 `
 	validConfig = strings.Replace(validConfig, "{ServerAddress}", server, 1)
@@ -280,6 +280,7 @@ func TestFileDataDownLoadFile(t *testing.T) {
 		if err != nil {
 			t.Errorf("Send failed: %v", err)
 		}
+		os.Remove("file_name")
 	})
 
 	t.Run("badrequest", func(t *testing.T) {
@@ -287,6 +288,7 @@ func TestFileDataDownLoadFile(t *testing.T) {
 		if err == nil || !strings.Contains(err.Error(), "ошибка в запросе") {
 			t.Errorf("Send should have failed with unknown error: %v", err)
 		}
+		os.Remove("file_name")
 
 	})
 

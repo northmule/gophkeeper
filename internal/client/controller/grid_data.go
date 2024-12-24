@@ -17,11 +17,11 @@ import (
 type GridData struct {
 	logger *logger.Logger
 	cfg    *config.Config
-	crypt  *service.Crypt
+	crypt  service.Cryptographer
 }
 
 // NewGridData конструктор
-func NewGridData(cfg *config.Config, crypt *service.Crypt, logger *logger.Logger) *GridData {
+func NewGridData(cfg *config.Config, crypt service.Cryptographer, logger *logger.Logger) *GridData {
 	return &GridData{
 		logger: logger,
 		cfg:    cfg,

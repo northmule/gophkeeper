@@ -39,7 +39,6 @@ func TestCreateHashForKey(t *testing.T) {
 }
 
 func TestFillPublicRsaKeyFromString(t *testing.T) {
-	// Generate a valid RSA public key in PEM format
 	rsaKey, _ := rsa.GenerateKey(rand.Reader, 2048)
 	rsaKeyBytes, _ := x509.MarshalPKIXPublicKey(&rsaKey.PublicKey)
 	rsaKeyPem := pem.EncodeToMemory(&pem.Block{

@@ -5,6 +5,7 @@ import (
 	"github.com/northmule/gophkeeper/internal/client/config"
 	"github.com/northmule/gophkeeper/internal/client/controller"
 	"github.com/northmule/gophkeeper/internal/client/logger"
+	"github.com/northmule/gophkeeper/internal/client/service"
 	"github.com/northmule/gophkeeper/internal/client/storage"
 	"golang.org/x/net/context"
 )
@@ -26,7 +27,11 @@ func NewClientView(cfg *config.Config, log *logger.Logger) *ClientView {
 // InitMain подготовка консольных форм
 func (v *ClientView) InitMain(ctx context.Context) error {
 
-	manager, err := controller.NewManager(v.cfg, v.log)
+	cryptService, err := service.NewCrypt(v.cfg)
+	if err != nil {
+		return err
+	}
+	manager, err := controller.NewManager(v.cfg, cryptService, v.log)
 	if err != nil {
 		return err
 	}

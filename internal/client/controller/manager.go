@@ -24,12 +24,7 @@ type Manager struct {
 }
 
 // NewManager конструктор
-func NewManager(cfg *config.Config, logger *logger.Logger) (*Manager, error) {
-
-	cryptService, err := service.NewCrypt(cfg)
-	if err != nil {
-		return nil, err
-	}
+func NewManager(cfg *config.Config, cryptService service.Cryptographer, logger *logger.Logger) (*Manager, error) {
 
 	return &Manager{
 		logger:         logger,
