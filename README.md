@@ -1,4 +1,5 @@
 # Менеджер паролей GophKeeper
+![coverage](./badges/cover.svg)
 
 ## Клиент
 ![Alt Text](https://github.com/northmule/gophkeeper/blob/iter1/doc/client_usage.gif)
