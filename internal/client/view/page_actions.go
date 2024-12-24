@@ -19,10 +19,12 @@ func newPageAction(mainPage *pageIndex) pageAction {
 	}
 }
 
+// Init инициализация модели
 func (m pageAction) Init() tea.Cmd {
 	return nil
 }
 
+// Update изменение модели
 func (m pageAction) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		k := msg.String()

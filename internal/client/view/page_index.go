@@ -18,10 +18,10 @@ type pageIndex struct {
 	managerController controller.ManagerController
 	log               *logger.Logger
 
-	storage *storage.MemoryStorage
+	storage storage.Storage
 }
 
-func newPageIndex(managerController controller.ManagerController, storage *storage.MemoryStorage, log *logger.Logger) *pageIndex {
+func newPageIndex(managerController controller.ManagerController, storage storage.Storage, log *logger.Logger) *pageIndex {
 	return &pageIndex{
 		log:               log,
 		storage:           storage,
