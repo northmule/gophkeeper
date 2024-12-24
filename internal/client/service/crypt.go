@@ -22,6 +22,18 @@ type Crypt struct {
 	cfg *config.Config
 }
 
+// Cryptographer общий интерфейс шифрования для клиента
+type Cryptographer interface {
+	// EncryptRSA Шифрование исходящих данных серверных публичным ключом
+	EncryptRSA(data []byte) ([]byte, error)
+	// DecryptRSA Расшифровка входящих сообещний приватным ключом клиента
+	DecryptRSA(data []byte) ([]byte, error)
+	// EncryptAES Шифрование исходящих данных
+	EncryptAES(data []byte) ([]byte, error)
+	// DecryptAES Расшифровка входящих сообещний
+	DecryptAES(data []byte) ([]byte, error)
+}
+
 // NewCrypt конструктор
 func NewCrypt(cfg *config.Config) (*Crypt, error) {
 	instance := new(Crypt)

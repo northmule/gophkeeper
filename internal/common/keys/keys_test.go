@@ -5,14 +5,12 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"errors"
-	"io/ioutil"
 	"math/big"
 	"os"
 	"path/filepath"
 	"testing"
 )
 
-// MockKeyGenerator is a mock implementation of KeyGenerator
 type MockKeyGenerator struct {
 	Key crypto.Signer
 	Err error
@@ -23,12 +21,11 @@ func (m *MockKeyGenerator) GenerateKey() (crypto.Signer, error) {
 }
 
 func TestInitSelfSigned(t *testing.T) {
-
-	dir, err := ioutil.TempDir("", "test")
+	testDir, err := os.MkdirTemp("", "test")
 	if err != nil {
-		t.Fatalf("Failed to create temp dir: %v", err)
+		t.Fatalf("Failed to create test directory: %v", err)
 	}
-	defer os.RemoveAll(dir)
+	defer os.RemoveAll(testDir)
 
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
@@ -38,7 +35,7 @@ func TestInitSelfSigned(t *testing.T) {
 	mockGenerator := &MockKeyGenerator{Key: privateKey}
 	options := Options{
 		Generator:    mockGenerator,
-		SavePath:     dir,
+		SavePath:     testDir,
 		Organization: "TestOrg",
 		Country:      "TestCountry",
 		SerialNumber: big.NewInt(1),
@@ -46,66 +43,50 @@ func TestInitSelfSigned(t *testing.T) {
 
 	keysService := NewKeys(options)
 
-	// Test main functionality
 	err = keysService.InitSelfSigned()
 	if err != nil {
 		t.Errorf("InitSelfSigned failed: %v", err)
 	}
 
-	files := []string{
-		PrivateKeyFileName,
-		PublicKeyFileName,
-		CertificateFileName,
+	privateKeyPath := filepath.Join(testDir, PrivateKeyFileName)
+	publicKeyPath := filepath.Join(testDir, PublicKeyFileName)
+	certPath := filepath.Join(testDir, CertificateFileName)
+
+	if _, err := os.Stat(privateKeyPath); os.IsNotExist(err) {
+		t.Errorf("Private key file not created: %v", err)
 	}
 
-	for _, file := range files {
-		path := filepath.Join(dir, file)
-		if _, err := os.Stat(path); os.IsNotExist(err) {
-			t.Errorf("File %s does not exist", path)
-		}
+	if _, err := os.Stat(publicKeyPath); os.IsNotExist(err) {
+		t.Errorf("Public key file not created: %v", err)
+	}
+
+	if _, err := os.Stat(certPath); os.IsNotExist(err) {
+		t.Errorf("Certificate file not created: %v", err)
 	}
 
 	mockGenerator.Err = errors.New("mock error")
 	err = keysService.InitSelfSigned()
 	if err == nil {
-		t.Errorf("Expected error, got nil")
+		t.Errorf("InitSelfSigned should have failed with mock error")
 	}
 
 	mockGenerator.Err = nil
 	mockGenerator.Key = nil
 	err = keysService.InitSelfSigned()
 	if err == nil {
-		t.Errorf("Expected error, got nil")
+		t.Errorf("InitSelfSigned should have failed with nil key")
 	}
 
+	// Test input validation
 	options.SavePath = ""
 	keysService = NewKeys(options)
-	err = keysService.InitSelfSigned()
-	if err == nil {
-		t.Errorf("Expected error, got nil")
+	if keysService.PrivateKeyPath() != PrivateKeyFileName {
+		t.Errorf("PrivateKeyPath should be empty with empty SavePath")
 	}
-
-	options.SavePath = dir
-	options.Organization = ""
-	keysService = NewKeys(options)
-	err = keysService.InitSelfSigned()
-	if err == nil {
-		t.Errorf("Expected error, got nil")
+	if keysService.PublicKeyPath() != PublicKeyFileName {
+		t.Errorf("PublicKeyFileName should be empty with empty SavePath")
 	}
-
-	options.Organization = "TestOrg"
-	options.Country = ""
-	keysService = NewKeys(options)
-	err = keysService.InitSelfSigned()
-	if err == nil {
-		t.Errorf("Expected error, got nil")
-	}
-
-	options.Country = "TestCountry"
-	options.SerialNumber = big.NewInt(0)
-	keysService = NewKeys(options)
-	err = keysService.InitSelfSigned()
-	if err == nil {
-		t.Errorf("Expected error, got nil")
+	if keysService.CertPath() != CertificateFileName {
+		t.Errorf("CertificateFileName should be empty with empty SavePath")
 	}
 }

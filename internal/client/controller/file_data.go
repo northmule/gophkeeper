@@ -22,11 +22,11 @@ import (
 type FileData struct {
 	logger *logger.Logger
 	cfg    *config.Config
-	crypt  *service.Crypt
+	crypt  service.Cryptographer
 }
 
 // NewFileData конструктор
-func NewFileData(cfg *config.Config, crypt *service.Crypt, logger *logger.Logger) *FileData {
+func NewFileData(cfg *config.Config, crypt service.Cryptographer, logger *logger.Logger) *FileData {
 	return &FileData{
 		logger: logger,
 		cfg:    cfg,
@@ -133,6 +133,9 @@ func (c *FileData) UploadFile(token string, url string, file *os.File) error {
 	response, err := client.Do(requestPrepare)
 	if err != nil {
 		return err
+	}
+	if response.StatusCode == http.StatusUnauthorized {
+		return fmt.Errorf("вы не авторизованы")
 	}
 	defer response.Body.Close()
 

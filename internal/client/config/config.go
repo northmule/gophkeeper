@@ -13,7 +13,7 @@ type Config struct {
 // ServerConfig структура конфигурации клиента
 type ServerConfig struct {
 	ServerAddress string `mapstructure:"ServerAddress"`
-	LogLevel      string `mapstructure:"LogLever"`
+	LogLevel      string `mapstructure:"LogLevel"`
 	FilePath      string `mapstructure:"FilePath"`
 	// Путь для сохранения публичного и приватного ключей клиента
 	PathKeys string `json:"PathKeys"`

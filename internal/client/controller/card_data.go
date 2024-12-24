@@ -17,11 +17,11 @@ import (
 type CardData struct {
 	logger *logger.Logger
 	cfg    *config.Config
-	crypt  *service.Crypt
+	crypt  service.Cryptographer
 }
 
 // NewCardData конструктор
-func NewCardData(cfg *config.Config, crypt *service.Crypt, logger *logger.Logger) *CardData {
+func NewCardData(cfg *config.Config, crypt service.Cryptographer, logger *logger.Logger) *CardData {
 	return &CardData{
 		logger: logger,
 		cfg:    cfg,
