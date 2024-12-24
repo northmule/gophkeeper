@@ -20,7 +20,6 @@ var (
 	dotStyle          = lipgloss.NewStyle().Foreground(lipgloss.Color("236")).Render(dotChar)
 	mainStyle         = lipgloss.NewStyle().MarginLeft(2)
 	responseTextStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#418ce6"))
-	spinnerStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color("69"))
 )
 
 // чекбокс

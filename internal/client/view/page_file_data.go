@@ -38,7 +38,7 @@ type pageFileData struct {
 	isEditable bool
 }
 
-func newPageFileData(mainPage *pageIndex) pageFileData {
+func newPageFileData(mainPage *pageIndex) *pageFileData {
 
 	name := textinput.New()
 	name.Placeholder = "Название данных"
@@ -62,7 +62,7 @@ func newPageFileData(mainPage *pageIndex) pageFileData {
 	meta2.CharLimit = 100
 	meta2.Width = 35
 
-	m := pageFileData{}
+	m := &pageFileData{}
 	m.mainPage = mainPage
 
 	m.name = name
@@ -74,7 +74,7 @@ func newPageFileData(mainPage *pageIndex) pageFileData {
 }
 
 // SetEditableData значения для редактирования
-func (m pageFileData) SetEditableData(data *model_data.FileDataInitRequest) pageFileData {
+func (m *pageFileData) SetEditableData(data *model_data.FileDataInitRequest) *pageFileData {
 	m.uuid = data.UUID
 	m.name.SetValue(data.Name)
 	m.filePath.SetValue(data.FileName)
@@ -92,18 +92,18 @@ func (m pageFileData) SetEditableData(data *model_data.FileDataInitRequest) page
 	return m
 }
 
-func (m pageFileData) SetPageGrid(page *pageDataGrid) pageFileData {
+func (m *pageFileData) SetPageGrid(page *pageDataGrid) *pageFileData {
 	m.gridPage = page
 
 	return m
 }
 
-func (m pageFileData) Init() tea.Cmd {
+func (m *pageFileData) Init() tea.Cmd {
 	m.filePath.SetValue(m.selectedFile)
 	return textinput.Blink
 }
 
-func (m pageFileData) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *pageFileData) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg.(type) {
@@ -134,7 +134,7 @@ func (m pageFileData) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if k == "enter" {
 			if m.Choice == 1 {
-				pageFileSelected := newpageFileSelect(&m)
+				pageFileSelected := newpageFileSelect(m)
 				return pageFileSelected, pageFileSelected.Init()
 			}
 			if m.Choice == 4 {
@@ -225,7 +225,7 @@ func (m pageFileData) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m pageFileData) View() string {
+func (m *pageFileData) View() string {
 
 	c := m.Choice
 	if m.selectedFile != "" {

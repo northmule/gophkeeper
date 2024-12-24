@@ -19,8 +19,8 @@ type pageDataGrid struct {
 	table      table.Model
 }
 
-func newPageDataGrid(mainPage *pageIndex, actionPage *pageAction) pageDataGrid {
-	m := pageDataGrid{}
+func newPageDataGrid(mainPage *pageIndex, actionPage *pageAction) *pageDataGrid {
+	m := &pageDataGrid{}
 	m.mainPage = mainPage
 	m.actionPage = actionPage
 
@@ -65,9 +65,9 @@ func newPageDataGrid(mainPage *pageIndex, actionPage *pageAction) pageDataGrid {
 	return m
 }
 
-func (m pageDataGrid) Init() tea.Cmd { return nil }
+func (m *pageDataGrid) Init() tea.Cmd { return nil }
 
-func (m pageDataGrid) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *pageDataGrid) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -84,15 +84,15 @@ func (m pageDataGrid) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				)
 			}
 			if itemResponse.IsCard {
-				return newPageCardData(m.mainPage).SetEditableData(&itemResponse.CardData).SetPageGrid(&m), nil
+				return newPageCardData(m.mainPage).SetEditableData(&itemResponse.CardData).SetPageGrid(m), nil
 			}
 
 			if itemResponse.IsText {
-				return newPageTextData(m.mainPage).SetEditableData(&itemResponse.TextData).SetPageGrid(&m), nil
+				return newPageTextData(m.mainPage).SetEditableData(&itemResponse.TextData).SetPageGrid(m), nil
 			}
 
 			if itemResponse.IsFile {
-				return newPageFileData(m.mainPage).SetEditableData(&itemResponse.FileData).SetPageGrid(&m), nil
+				return newPageFileData(m.mainPage).SetEditableData(&itemResponse.FileData).SetPageGrid(m), nil
 			}
 
 			return m, tea.Batch(

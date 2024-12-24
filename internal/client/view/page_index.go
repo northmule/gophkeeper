@@ -30,11 +30,11 @@ func newPageIndex(managerController controller.ManagerController, storage storag
 }
 
 // Init Действия при инициализации (загрузка данных и т.д)
-func (m pageIndex) Init() tea.Cmd {
+func (m *pageIndex) Init() tea.Cmd {
 	return nil
 }
 
-func (m pageIndex) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *pageIndex) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		k := msg.String()
 		if k == "q" || k == "esc" || k == "ctrl+c" {
@@ -56,13 +56,13 @@ func (m pageIndex) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		if k == "enter" {
 			if m.Choice == 0 {
-				return newPageAuthentication(&m), nil
+				return newPageAuthentication(m), nil
 			}
 			if m.Choice == 1 {
-				return newPageRegistration(&m), nil
+				return newPageRegistration(m), nil
 			}
 			if m.Choice == 2 {
-				return newPageHelp(&m), nil
+				return newPageHelp(m), nil
 			}
 
 		}
@@ -72,7 +72,7 @@ func (m pageIndex) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 // View вид модели( в том числе при старте)
-func (m pageIndex) View() string {
+func (m *pageIndex) View() string {
 	c := m.Choice
 
 	title := renderTitle("Выберите действия")

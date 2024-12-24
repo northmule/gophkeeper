@@ -18,7 +18,7 @@ type pageAuthentication struct {
 }
 
 // инициализация модели
-func newPageAuthentication(main *pageIndex) pageAuthentication {
+func newPageAuthentication(main *pageIndex) *pageAuthentication {
 	login := textinput.New()
 	login.Placeholder = "Введите логин"
 	login.Focus()
@@ -30,7 +30,7 @@ func newPageAuthentication(main *pageIndex) pageAuthentication {
 	password.CharLimit = 50
 	password.Width = 20
 
-	m := pageAuthentication{}
+	m := &pageAuthentication{}
 	m.login = login
 	m.password = password
 
@@ -39,11 +39,11 @@ func newPageAuthentication(main *pageIndex) pageAuthentication {
 	return m
 }
 
-func (m pageAuthentication) Init() tea.Cmd {
+func (m *pageAuthentication) Init() tea.Cmd {
 	return textinput.Blink
 }
 
-func (m pageAuthentication) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *pageAuthentication) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	var cmd tea.Cmd
 
@@ -114,7 +114,7 @@ func (m pageAuthentication) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m pageAuthentication) View() string {
+func (m *pageAuthentication) View() string {
 
 	c := m.Choice
 

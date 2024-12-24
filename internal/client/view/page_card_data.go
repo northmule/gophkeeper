@@ -34,7 +34,7 @@ type pageCardData struct {
 	isEditable bool
 }
 
-func newPageCardData(mainPage *pageIndex) pageCardData {
+func newPageCardData(mainPage *pageIndex) *pageCardData {
 
 	name := textinput.New()
 	name.Placeholder = "Название данных"
@@ -87,7 +87,7 @@ func newPageCardData(mainPage *pageIndex) pageCardData {
 	meta2.CharLimit = 100
 	meta2.Width = 100
 
-	m := pageCardData{}
+	m := &pageCardData{}
 	m.mainPage = mainPage
 
 	m.name = name
@@ -105,7 +105,7 @@ func newPageCardData(mainPage *pageIndex) pageCardData {
 }
 
 // SetEditableData значения для редактирования
-func (m pageCardData) SetEditableData(data *model_data.CardDataRequest) pageCardData {
+func (m *pageCardData) SetEditableData(data *model_data.CardDataRequest) *pageCardData {
 	m.uuid = data.UUID
 	m.name.SetValue(data.Name)
 	m.cardNumber.SetValue(data.CardNumber)
@@ -128,17 +128,17 @@ func (m pageCardData) SetEditableData(data *model_data.CardDataRequest) pageCard
 	return m
 }
 
-func (m pageCardData) SetPageGrid(page *pageDataGrid) pageCardData {
+func (m *pageCardData) SetPageGrid(page *pageDataGrid) *pageCardData {
 	m.gridPage = page
 
 	return m
 }
 
-func (m pageCardData) Init() tea.Cmd {
+func (m *pageCardData) Init() tea.Cmd {
 	return textinput.Blink
 }
 
-func (m pageCardData) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *pageCardData) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	var cmd tea.Cmd
 
@@ -248,7 +248,7 @@ func (m pageCardData) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m pageCardData) View() string {
+func (m *pageCardData) View() string {
 
 	c := m.Choice
 

@@ -21,7 +21,7 @@ type pageRegistration struct {
 }
 
 // инициализация модели
-func newPageRegistration(main *pageIndex) pageRegistration {
+func newPageRegistration(main *pageIndex) *pageRegistration {
 	login := textinput.New()
 	login.Placeholder = "Введите логин"
 	login.Focus()
@@ -43,7 +43,7 @@ func newPageRegistration(main *pageIndex) pageRegistration {
 	email.CharLimit = 50
 	email.Width = 20
 
-	m := pageRegistration{}
+	m := &pageRegistration{}
 	m.login = login
 	m.password = password
 	m.password2 = password2
@@ -54,11 +54,11 @@ func newPageRegistration(main *pageIndex) pageRegistration {
 	return m
 }
 
-func (m pageRegistration) Init() tea.Cmd {
+func (m *pageRegistration) Init() tea.Cmd {
 	return textinput.Blink
 }
 
-func (m pageRegistration) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *pageRegistration) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	var cmd tea.Cmd
 
@@ -126,7 +126,7 @@ func (m pageRegistration) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m pageRegistration) View() string {
+func (m *pageRegistration) View() string {
 
 	c := m.Choice
 

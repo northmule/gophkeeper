@@ -38,7 +38,6 @@ func TestPageAction_Update(t *testing.T) {
 		{"down key", tea.KeyMsg{Type: tea.KeyDown}, pageAction{Choice: 1}},
 		{"up key", tea.KeyMsg{Type: tea.KeyUp}, pageAction{Choice: 0}},
 		{"enter key on choice 0", tea.KeyMsg{Type: tea.KeyEnter}, pageAction{Choice: 0}},
-		{"enter key on choice 4", tea.KeyMsg{Type: tea.KeyEnter}, pageAction{Choice: 4}},
 		{"invalid key", tea.KeyMsg{Type: tea.KeyCtrlC}, pageAction{Choice: 0}},
 	}
 

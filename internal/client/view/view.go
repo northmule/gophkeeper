@@ -38,7 +38,7 @@ func (v *ClientView) InitMain(ctx context.Context) error {
 	memoryStorage := storage.NewMemoryStorage()
 
 	p := tea.NewProgram(newPageIndex(manager, memoryStorage, v.log))
-	if _, err := p.Run(); err != nil {
+	if _, err = p.Run(); err != nil {
 		return err
 	}
 

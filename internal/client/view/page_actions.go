@@ -13,19 +13,19 @@ type pageAction struct {
 	mainPage *pageIndex
 }
 
-func newPageAction(mainPage *pageIndex) pageAction {
-	return pageAction{
+func newPageAction(mainPage *pageIndex) *pageAction {
+	return &pageAction{
 		mainPage: mainPage,
 	}
 }
 
 // Init инициализация модели
-func (m pageAction) Init() tea.Cmd {
+func (m *pageAction) Init() tea.Cmd {
 	return nil
 }
 
 // Update изменение модели
-func (m pageAction) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *pageAction) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		k := msg.String()
 		if k == "down" || k == "tab" {
@@ -53,7 +53,7 @@ func (m pageAction) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return p, p.Init()
 			}
 			if m.Choice == 3 {
-				return newPageDataGrid(m.mainPage, &m), nil
+				return newPageDataGrid(m.mainPage, m), nil
 			}
 
 			// выход
@@ -69,7 +69,7 @@ func (m pageAction) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 // View вид модели( в том числе при старте)
-func (m pageAction) View() string {
+func (m *pageAction) View() string {
 	c := m.Choice
 
 	title := renderTitle("Доступные действия")

@@ -19,9 +19,9 @@ type pageFileSelect struct {
 	filepicker      filepicker.Model
 }
 
-func newpageFileSelect(pageFileData *pageFileData) pageFileSelect {
+func newpageFileSelect(pageFileData *pageFileData) *pageFileSelect {
 
-	m := pageFileSelect{}
+	m := &pageFileSelect{}
 	m.pageFileData = pageFileData
 	fp := filepicker.New()
 	// Файлы разрешённые к загрузке
@@ -61,11 +61,11 @@ func clearFieldAfter(t time.Duration) tea.Cmd {
 	})
 }
 
-func (m pageFileSelect) Init() tea.Cmd {
+func (m *pageFileSelect) Init() tea.Cmd {
 	return m.filepicker.Init()
 }
 
-func (m pageFileSelect) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *pageFileSelect) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -100,7 +100,7 @@ func (m pageFileSelect) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m pageFileSelect) View() string {
+func (m *pageFileSelect) View() string {
 
 	var s strings.Builder
 	s.WriteString(renderTitle("Выберите файл"))
