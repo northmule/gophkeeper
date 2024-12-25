@@ -1,9 +1,12 @@
 package controller
 
 import (
+	"os"
+
 	"github.com/northmule/gophkeeper/internal/client/config"
 	"github.com/northmule/gophkeeper/internal/client/logger"
 	"github.com/northmule/gophkeeper/internal/client/service"
+	"github.com/northmule/gophkeeper/internal/common/model_data"
 )
 
 // Manager менеджер контроллеров
@@ -43,12 +46,39 @@ func NewManager(cfg *config.Config, cryptService service.Cryptographer, logger *
 type ManagerController interface {
 	Authentication() *Authentication
 	CardData() *CardData
-	TextData() *TextData
-	FileData() *FileData
-	GridData() *GridData
-	ItemData() *ItemData
+	TextData() TextDataController
+	FileData() FileDataController
+	GridData() GridDataController
+	ItemData() ItemDataController
 	KeysData() *KeysData
-	Registration() *Registration
+	Registration() RegistrationController
+}
+
+// ItemDataController контроллер
+type ItemDataController interface {
+	Send(token string, dataUUID string) (*model_data.DataByUUIDResponse, error)
+}
+
+// GridDataController контроллер
+type GridDataController interface {
+	Send(token string) (*GridDataResponse, error)
+}
+
+// FileDataController контроллер
+type FileDataController interface {
+	Send(token string, requestData *model_data.FileDataInitRequest) (*FileDataResponse, error)
+	UploadFile(token string, url string, file *os.File) error
+	DownLoadFile(token string, fileName string, dataUUID string) error
+}
+
+// RegistrationController контроллер
+type RegistrationController interface {
+	Send(login string, password string, email string) (*RegistrationResponse, error)
+}
+
+// TextDataController контроллер
+type TextDataController interface {
+	Send(token string, requestData *model_data.TextDataRequest) (*TextDataResponse, error)
 }
 
 // Authentication контроллер
@@ -62,22 +92,22 @@ func (manager *Manager) CardData() *CardData {
 }
 
 // TextData контроллер
-func (manager *Manager) TextData() *TextData {
+func (manager *Manager) TextData() TextDataController {
 	return manager.textData
 }
 
 // FileData контроллер
-func (manager *Manager) FileData() *FileData {
+func (manager *Manager) FileData() FileDataController {
 	return manager.fileData
 }
 
 // GridData контроллер
-func (manager *Manager) GridData() *GridData {
+func (manager *Manager) GridData() GridDataController {
 	return manager.gridData
 }
 
 // ItemData контроллер
-func (manager *Manager) ItemData() *ItemData {
+func (manager *Manager) ItemData() ItemDataController {
 	return manager.itemData
 }
 
@@ -87,6 +117,6 @@ func (manager *Manager) KeysData() *KeysData {
 }
 
 // Registration контроллер
-func (manager *Manager) Registration() *Registration {
+func (manager *Manager) Registration() RegistrationController {
 	return manager.registration
 }

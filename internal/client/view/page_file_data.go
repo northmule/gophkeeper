@@ -134,7 +134,7 @@ func (m *pageFileData) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if k == "enter" {
 			if m.Choice == 1 {
-				pageFileSelected := newpageFileSelect(m)
+				pageFileSelected := newPageFileSelect(m)
 				return pageFileSelected, pageFileSelected.Init()
 			}
 			if m.Choice == 4 {

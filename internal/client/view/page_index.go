@@ -34,6 +34,7 @@ func (m *pageIndex) Init() tea.Cmd {
 	return nil
 }
 
+// Update обновление
 func (m *pageIndex) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		k := msg.String()

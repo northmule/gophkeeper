@@ -19,7 +19,7 @@ type pageFileSelect struct {
 	filepicker      filepicker.Model
 }
 
-func newpageFileSelect(pageFileData *pageFileData) *pageFileSelect {
+func newPageFileSelect(pageFileData *pageFileData) *pageFileSelect {
 
 	m := &pageFileSelect{}
 	m.pageFileData = pageFileData
