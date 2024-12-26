@@ -55,6 +55,11 @@ func (h *DecryptDataHandler) HandleDecryptData(next http.Handler) http.Handler {
 
 		// копия body
 		bodyBytes, _ := io.ReadAll(req.Body)
+		if len(bodyBytes) == 0 {
+			h.log.Error(err)
+			_ = render.Render(res, req, ErrBadRequest)
+			return
+		}
 		// Расшифровываем тело запроса
 		bodyBytesDecrypt, err = util.DataDecryptAES(bodyBytes, []byte(user.PrivateClientKey))
 		if err != nil {

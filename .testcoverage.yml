@@ -32,3 +32,4 @@ exclude:
     - ^internal/common/models/*
     - ^swagger/*
     - ^mock/*
+    - ^errors.go

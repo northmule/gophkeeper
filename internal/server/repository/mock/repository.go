@@ -20,6 +20,9 @@ func (m *MockUserDataModelRepository) FindOneByLogin(ctx context.Context, login 
 
 func (m *MockUserDataModelRepository) FindOneByUUID(ctx context.Context, uuid string) (*models.User, error) {
 	args := m.Called(ctx, uuid)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).(*models.User), args.Error(1)
 }
 
@@ -50,6 +53,9 @@ type MockCardDataModelRepository struct {
 
 func (m *MockCardDataModelRepository) FindOneByUUID(ctx context.Context, uuid string) (*models.CardData, error) {
 	args := m.Called(ctx, uuid)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).(*models.CardData), args.Error(1)
 }
 
@@ -70,11 +76,17 @@ type MockOwnerDataModelRepository struct {
 
 func (m *MockOwnerDataModelRepository) FindOneByUserUUIDAndDataUUIDAndDataType(ctx context.Context, userUuid string, dataUuid string, dataType string) (*models.Owner, error) {
 	args := m.Called(ctx, userUuid, dataUuid, dataType)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).(*models.Owner), args.Error(1)
 }
 
 func (m *MockOwnerDataModelRepository) FindOneByUserUUIDAndDataUUID(ctx context.Context, userUuid string, dataUuid string) (*models.Owner, error) {
 	args := m.Called(ctx, userUuid, dataUuid)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).(*models.Owner), args.Error(1)
 }
 
@@ -115,6 +127,9 @@ type MockTextDataModelRepository struct {
 
 func (m *MockTextDataModelRepository) FindOneByUUID(ctx context.Context, uuid string) (*models.TextData, error) {
 	args := m.Called(ctx, uuid)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).(*models.TextData), args.Error(1)
 }
 
@@ -135,6 +150,9 @@ type MockFileDataModelRepository struct {
 
 func (m *MockFileDataModelRepository) FindOneByUUID(ctx context.Context, uuid string) (*models.FileData, error) {
 	args := m.Called(ctx, uuid)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).(*models.FileData), args.Error(1)
 }
 
