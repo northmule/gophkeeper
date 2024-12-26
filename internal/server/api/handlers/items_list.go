@@ -13,11 +13,11 @@ import (
 
 type ItemsListHandler struct {
 	log           *logger.Logger
-	accessService *access.Access
+	accessService access.AccessService
 	manager       repository.Repository
 }
 
-func NewItemsListHandler(accessService *access.Access, manager repository.Repository, log *logger.Logger) *ItemsListHandler {
+func NewItemsListHandler(accessService access.AccessService, manager repository.Repository, log *logger.Logger) *ItemsListHandler {
 	return &ItemsListHandler{
 		accessService: accessService,
 		manager:       manager,

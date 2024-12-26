@@ -21,14 +21,14 @@ import (
 // FileDataHandler обработка запросо на сохранение файлов
 type FileDataHandler struct {
 	log           *logger.Logger
-	accessService *access.Access
+	accessService access.AccessService
 	manager       repository.Repository
 
 	cfg *config.Config
 }
 
 // NewFileDataHandler конструктор
-func NewFileDataHandler(accessService *access.Access, manager repository.Repository, cfg *config.Config, log *logger.Logger) *FileDataHandler {
+func NewFileDataHandler(accessService access.AccessService, manager repository.Repository, cfg *config.Config, log *logger.Logger) *FileDataHandler {
 
 	return &FileDataHandler{
 		accessService: accessService,

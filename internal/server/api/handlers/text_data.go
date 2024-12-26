@@ -16,12 +16,12 @@ import (
 // TextDataHandler обрабатывает текстовые данные
 type TextDataHandler struct {
 	log           *logger.Logger
-	accessService *access.Access
+	accessService access.AccessService
 	manager       repository.Repository
 }
 
 // NewTextDataHandler конструктор
-func NewTextDataHandler(accessService *access.Access, manager repository.Repository, log *logger.Logger) *TextDataHandler {
+func NewTextDataHandler(accessService access.AccessService, manager repository.Repository, log *logger.Logger) *TextDataHandler {
 	return &TextDataHandler{
 		accessService: accessService,
 		manager:       manager,

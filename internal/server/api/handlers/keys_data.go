@@ -28,7 +28,7 @@ import (
 // KeysDataHandler обработка запросо с ключами
 type KeysDataHandler struct {
 	log            *logger.Logger
-	accessService  *access.Access
+	accessService  access.AccessService
 	manager        repository.Repository
 	expectedAction map[string]bool
 
@@ -40,7 +40,7 @@ type KeysDataHandler struct {
 }
 
 // NewKeysDataHandler конструктор
-func NewKeysDataHandler(accessService *access.Access, cryptService *service.Crypt, manager repository.Repository, cfg *config.Config, log *logger.Logger) *KeysDataHandler {
+func NewKeysDataHandler(accessService access.AccessService, cryptService *service.Crypt, manager repository.Repository, cfg *config.Config, log *logger.Logger) *KeysDataHandler {
 
 	return &KeysDataHandler{
 		accessService:  accessService,

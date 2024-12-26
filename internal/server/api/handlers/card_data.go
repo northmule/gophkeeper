@@ -17,12 +17,12 @@ import (
 // CardDataHandler обрабатывает данные карт
 type CardDataHandler struct {
 	log           *logger.Logger
-	accessService *access.Access
+	accessService access.AccessService
 	manager       repository.Repository
 }
 
 // NewCardDataHandler конструктор
-func NewCardDataHandler(accessService *access.Access, manager repository.Repository, log *logger.Logger) *CardDataHandler {
+func NewCardDataHandler(accessService access.AccessService, manager repository.Repository, log *logger.Logger) *CardDataHandler {
 	return &CardDataHandler{
 		accessService: accessService,
 		manager:       manager,

@@ -16,12 +16,12 @@ import (
 // DecryptDataHandler Расшифровывает входящий запрос
 type DecryptDataHandler struct {
 	log           *logger.Logger
-	accessService *access.Access
+	accessService access.AccessService
 	manager       repository.Repository
 }
 
 // NewDecryptDataHandler конструктор
-func NewDecryptDataHandler(accessService *access.Access, manager repository.Repository, log *logger.Logger) *DecryptDataHandler {
+func NewDecryptDataHandler(accessService access.AccessService, manager repository.Repository, log *logger.Logger) *DecryptDataHandler {
 	return &DecryptDataHandler{
 		log:           log,
 		accessService: accessService,

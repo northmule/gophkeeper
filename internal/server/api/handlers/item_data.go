@@ -17,12 +17,12 @@ import (
 // ItemDataHandler обрабатывает запрос данных по uuid
 type ItemDataHandler struct {
 	log           *logger.Logger
-	accessService *access.Access
+	accessService access.AccessService
 	manager       repository.Repository
 }
 
 // NewItemDataHandler конструктор
-func NewItemDataHandler(accessService *access.Access, manager repository.Repository, log *logger.Logger) *ItemDataHandler {
+func NewItemDataHandler(accessService access.AccessService, manager repository.Repository, log *logger.Logger) *ItemDataHandler {
 	return &ItemDataHandler{
 		accessService: accessService,
 		manager:       manager,

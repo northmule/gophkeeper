@@ -18,6 +18,7 @@ type ValidatorHandler struct {
 	requestStruct any
 }
 
+// NewValidatorHandler конструктор
 func NewValidatorHandler(requestStruct any, log *logger.Logger) *ValidatorHandler {
 	return &ValidatorHandler{
 		log:           log,
@@ -25,6 +26,7 @@ func NewValidatorHandler(requestStruct any, log *logger.Logger) *ValidatorHandle
 	}
 }
 
+// HandleValidation валидирует запрос
 func (v *ValidatorHandler) HandleValidation(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		var err error
@@ -46,6 +48,7 @@ func (v *ValidatorHandler) HandleValidation(next http.Handler) http.Handler {
 			err = render.Bind(req, requestType)
 			err = errors.Join(err, validate.Struct(requestType)) // doc: https://pkg.go.dev/github.com/go-playground/validator/v10
 
+			// Пропускаем не известные
 		default:
 			v.log.Info(fmt.Sprintf("skip validation for %v", &v.requestStruct))
 			next.ServeHTTP(res, req)

@@ -9,6 +9,7 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
+// DBQuery интерфейс запросов
 type DBQuery interface {
 	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
 	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
@@ -18,6 +19,7 @@ type DBQuery interface {
 	Prepare(query string) (*sql.Stmt, error)
 }
 
+// TxDBQuery интерфейс запросов с транзакцими
 type TxDBQuery interface {
 	QueryRowContext(ctx context.Context, query string, args ...any) (*sql.Row, error)
 	Rollback() error
@@ -27,6 +29,7 @@ type TxDBQuery interface {
 	AddError(e error)
 }
 
+// Postgres тип хранилища
 type Postgres struct {
 	DB    DBQuery
 	RawDB *sql.DB
@@ -47,12 +50,14 @@ func NewPostgres(dsn string) (*Postgres, error) {
 	return instance, nil
 }
 
+// Ping доступность БД
 func (p *Postgres) Ping(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	return p.DB.PingContext(ctx)
 }
 
+// Transaction транзакции
 type Transaction struct {
 	t *sql.Tx
 	e []error
@@ -71,6 +76,7 @@ func NewTransaction(db DBQuery) (*Transaction, error) {
 	return &instance, nil
 }
 
+// QueryRowContext запрос в рамках транзакции
 func (t *Transaction) QueryRowContext(ctx context.Context, query string, args ...any) (*sql.Row, error) {
 	rows := t.t.QueryRowContext(ctx, query, args...)
 	err := rows.Err()
@@ -83,19 +89,27 @@ func (t *Transaction) QueryRowContext(ctx context.Context, query string, args ..
 
 }
 
+// Tx транзакция
 func (t *Transaction) Tx() *sql.Tx {
 	return t.t
 }
 
+// Rollback откат
 func (t *Transaction) Rollback() error {
 	return t.t.Rollback()
 }
+
+// Commit сохранить изменения
 func (t *Transaction) Commit() error {
 	return t.t.Commit()
 }
+
+// Error получить ошибки
 func (t *Transaction) Error() []error {
 	return t.e
 }
+
+// AddError добавить ошибку
 func (t *Transaction) AddError(e error) {
 	t.e = append(t.e, e)
 }

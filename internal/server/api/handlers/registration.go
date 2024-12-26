@@ -20,7 +20,7 @@ import (
 type RegistrationHandler struct {
 	manager       repository.Repository
 	session       storage.SessionManager
-	accessService *access.Access
+	accessService access.AccessService
 	log           *logger.Logger
 }
 
@@ -35,7 +35,7 @@ type authenticationRequest struct {
 	Password string `json:"password" validate:"required,min=10,max=100"`
 }
 
-func NewRegistrationHandler(manager repository.Repository, session storage.SessionManager, accessService *access.Access, log *logger.Logger) *RegistrationHandler {
+func NewRegistrationHandler(manager repository.Repository, session storage.SessionManager, accessService access.AccessService, log *logger.Logger) *RegistrationHandler {
 	instance := &RegistrationHandler{
 		manager:       manager,
 		session:       session,

@@ -31,3 +31,4 @@ exclude:
     - ^internal/common/data_type/*
     - ^internal/common/models/*
     - ^swagger/*
+    - ^mock/*
