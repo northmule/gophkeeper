@@ -22,15 +22,13 @@ exclude:
   # Exclude files or packages matching their paths
   paths:
     - \.pb\.go$    # excludes all protobuf generated files
-    - ^cmd/goose/*
-    - ^cmd/client/*
-    - ^cmd/server/*
+    - ^cmd/*
     - ^tools/*
     - ^db/*
     - ^internal/common/model_data/*
     - ^internal/common/data_type/*
     - ^internal/common/models/*
     - ^swagger/*
-    - ^mock/*
+    - ^mock/*.go
     - ^errors.go
-    - ^rctx.go
+    - ^rctx/*.go
