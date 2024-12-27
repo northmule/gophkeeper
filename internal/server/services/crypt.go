@@ -19,6 +19,11 @@ type Crypt struct {
 	cfg *config.Config
 }
 
+type CryptService interface {
+	EncryptRSA(data []byte) ([]byte, error)
+	DecryptRSA(data []byte) ([]byte, error)
+}
+
 // NewCrypt конструктор
 func NewCrypt(cfg *config.Config) (*Crypt, error) {
 	instance := new(Crypt)

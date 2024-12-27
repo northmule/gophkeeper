@@ -36,11 +36,11 @@ type KeysDataHandler struct {
 	publicKeyPath  string
 	privateKeyPath string
 
-	cryptService *service.Crypt
+	cryptService service.CryptService
 }
 
 // NewKeysDataHandler конструктор
-func NewKeysDataHandler(accessService access.AccessService, cryptService *service.Crypt, manager repository.Repository, cfg *config.Config, log *logger.Logger) *KeysDataHandler {
+func NewKeysDataHandler(accessService access.AccessService, cryptService service.CryptService, manager repository.Repository, cfg *config.Config, log *logger.Logger) *KeysDataHandler {
 
 	return &KeysDataHandler{
 		accessService:  accessService,
