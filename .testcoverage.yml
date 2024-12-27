@@ -33,3 +33,4 @@ exclude:
     - ^swagger/*
     - ^mock/*
     - ^errors.go
+    - ^rctx.go

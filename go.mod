@@ -3,9 +3,9 @@ module github.com/northmule/gophkeeper
 go 1.23.4
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/charmbracelet/bubbles v0.20.0
 	github.com/charmbracelet/bubbletea v1.2.4
-	github.com/fogleman/ease v0.0.0-20170301025033-8da417bf1776
 	github.com/gabriel-vasile/mimetype v1.4.7
 	github.com/go-chi/chi/v5 v5.1.0
 	github.com/go-chi/jwtauth/v5 v5.3.1
@@ -16,6 +16,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/pressly/goose/v3 v3.23.0
+	github.com/shopspring/decimal v1.4.0
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/zap v1.27.0
@@ -28,7 +29,7 @@ require (
 	github.com/charmbracelet/x/ansi v0.4.5 // indirect
 	github.com/charmbracelet/x/term v0.2.1 // indirect
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
-	github.com/lucasb-eyer/go-colorful v1.2.0
+	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect

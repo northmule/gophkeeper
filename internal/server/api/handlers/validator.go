@@ -39,11 +39,22 @@ func (v *ValidatorHandler) HandleValidation(next http.Handler) http.Handler {
 		// Список типов для валидации из текущих хэндлеров
 		switch requestType := st.(type) {
 		case *registrationRequest:
+			validate := validator.New(validator.WithRequiredStructEnabled())
+			err = render.Bind(req, requestType)
+			err = errors.Join(err, validate.Struct(requestType))
 		case *authenticationRequest:
+			validate := validator.New(validator.WithRequiredStructEnabled())
+			err = render.Bind(req, requestType)
+			err = errors.Join(err, validate.Struct(requestType))
 		case *cardDataRequest:
+			validate := validator.New(validator.WithRequiredStructEnabled())
+			err = render.Bind(req, requestType)
+			err = errors.Join(err, validate.Struct(requestType))
 		case *textDataRequest:
+			validate := validator.New(validator.WithRequiredStructEnabled())
+			err = render.Bind(req, requestType)
+			err = errors.Join(err, validate.Struct(requestType))
 		case *fileDataInitRequest:
-
 			validate := validator.New(validator.WithRequiredStructEnabled())
 			err = render.Bind(req, requestType)
 			err = errors.Join(err, validate.Struct(requestType)) // doc: https://pkg.go.dev/github.com/go-playground/validator/v10
