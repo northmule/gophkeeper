@@ -14,20 +14,24 @@ import (
 )
 
 type AppRoutes struct {
-	manager repository.Repository
-	storage storage.DBQuery
-	session storage.SessionManager
-	log     *logger.Logger
-	cfg     *config.Config
+	manager       repository.Repository
+	storage       storage.DBQuery
+	session       storage.SessionManager
+	log           *logger.Logger
+	cfg           *config.Config
+	accessService access.AccessService
+	cryptService  service.CryptService
 }
 
-func NewAppRoutes(repositoryManager repository.Repository, storage storage.DBQuery, session storage.SessionManager, log *logger.Logger, cfg *config.Config) AppRoutes {
+func NewAppRoutes(repositoryManager repository.Repository, storage storage.DBQuery, session storage.SessionManager, log *logger.Logger, cfg *config.Config, accessService access.AccessService, cryptService service.CryptService) AppRoutes {
 	instance := AppRoutes{
-		manager: repositoryManager,
-		storage: storage,
-		session: session,
-		log:     log,
-		cfg:     cfg,
+		manager:       repositoryManager,
+		storage:       storage,
+		session:       session,
+		log:           log,
+		cfg:           cfg,
+		accessService: accessService,
+		cryptService:  cryptService,
 	}
 	return instance
 }
@@ -35,25 +39,18 @@ func NewAppRoutes(repositoryManager repository.Repository, storage storage.DBQue
 // DefiningAppRoutes маршруты приложения
 func (ar *AppRoutes) DefiningAppRoutes() chi.Router {
 
-	//Сервисы
-	accessService := access.NewAccess(ar.cfg)
-	cryptService, err := service.NewCrypt(ar.cfg)
-	if err != nil {
-		ar.log.Error(err)
-	}
-
 	// Обработчики
 	healthHandler := NewHealthHandler(ar.log)
-	registrationHandler := NewRegistrationHandler(ar.manager, ar.session, accessService, ar.log)
+	registrationHandler := NewRegistrationHandler(ar.manager, ar.session, ar.accessService, ar.log)
 	transactionHandler := NewTransactionHandler(ar.storage, ar.log)
 
-	itemsListHandler := NewItemsListHandler(accessService, ar.manager, ar.log)
-	cardDataHandler := NewCardDataHandler(accessService, ar.manager, ar.log)
-	textDataHandler := NewTextDataHandler(accessService, ar.manager, ar.log)
-	fileDataHandler := NewFileDataHandler(accessService, ar.manager, ar.cfg, ar.log)
-	itemDataHandler := NewItemDataHandler(accessService, ar.manager, ar.log)
-	keysDataHandler := NewKeysDataHandler(accessService, cryptService, ar.manager, ar.cfg, ar.log)
-	decryptDataHandler := NewDecryptDataHandler(accessService, ar.manager, ar.log)
+	itemsListHandler := NewItemsListHandler(ar.accessService, ar.manager, ar.log)
+	cardDataHandler := NewCardDataHandler(ar.accessService, ar.manager, ar.log)
+	textDataHandler := NewTextDataHandler(ar.accessService, ar.manager, ar.log)
+	fileDataHandler := NewFileDataHandler(ar.accessService, ar.manager, ar.cfg, ar.log)
+	itemDataHandler := NewItemDataHandler(ar.accessService, ar.manager, ar.log)
+	keysDataHandler := NewKeysDataHandler(ar.accessService, ar.cryptService, ar.manager, ar.cfg, ar.log)
+	decryptDataHandler := NewDecryptDataHandler(ar.accessService, ar.manager, ar.log)
 
 	r := chi.NewRouter()
 
@@ -68,43 +65,43 @@ func (ar *AppRoutes) DefiningAppRoutes() chi.Router {
 		// Для авторизованных api
 		r.Group(func(r chi.Router) {
 			// Начальный jwt объект
-			jwtTokenObject := accessService.FillJWTToken()
+			jwtTokenObject := ar.accessService.FillJWTToken()
 
 			// приём от клиента публичного ключа
 			r.With(
-				jwtauth.Verify(jwtTokenObject, accessService.FindTokenByRequest),
+				jwtauth.Verify(jwtTokenObject, ar.accessService.FindTokenByRequest),
 				jwtauth.Authenticator(jwtTokenObject),
 			).Post("/save_public_key", keysDataHandler.HandleSaveClientPublicKey)
 
 			// приём от клиента приватного ключа(aes используется для шифрования данных)
 			r.With(
-				jwtauth.Verify(jwtTokenObject, accessService.FindTokenByRequest),
+				jwtauth.Verify(jwtTokenObject, ar.accessService.FindTokenByRequest),
 				jwtauth.Authenticator(jwtTokenObject),
 			).Post("/save_client_private_key", keysDataHandler.HandleSaveClientPrivateKey)
 
 			// Клиент забирает публичный ключ сервера
 			r.With(
-				jwtauth.Verify(jwtTokenObject, accessService.FindTokenByRequest),
+				jwtauth.Verify(jwtTokenObject, ar.accessService.FindTokenByRequest),
 				jwtauth.Authenticator(jwtTokenObject),
 			).Post("/download_server_public_key", keysDataHandler.HandleDownloadServerPublicKey)
 
 			// список сохранённых данных
 			r.With(
-				jwtauth.Verify(jwtTokenObject, accessService.FindTokenByRequest),
+				jwtauth.Verify(jwtTokenObject, ar.accessService.FindTokenByRequest),
 				jwtauth.Authenticator(jwtTokenObject),
 				decryptDataHandler.HandleEncryptData, // шифрует исходящий запрос
 			).Get("/items_list", itemsListHandler.HandleItemsList)
 
 			// Получить данные по uuid
 			r.With(
-				jwtauth.Verify(jwtTokenObject, accessService.FindTokenByRequest),
+				jwtauth.Verify(jwtTokenObject, ar.accessService.FindTokenByRequest),
 				jwtauth.Authenticator(jwtTokenObject),
 				decryptDataHandler.HandleEncryptData, // шифрует исходящий запрос
 			).Get("/item_get/{uuid}", itemDataHandler.HandleItem)
 
 			// добавить/изменить данные банковской карты
 			r.With(
-				jwtauth.Verify(jwtTokenObject, accessService.FindTokenByRequest),
+				jwtauth.Verify(jwtTokenObject, ar.accessService.FindTokenByRequest),
 				jwtauth.Authenticator(jwtTokenObject),
 				decryptDataHandler.HandleDecryptData, // расшифровка тела запроса
 				NewValidatorHandler(new(cardDataRequest), ar.log).HandleValidation,
@@ -112,7 +109,7 @@ func (ar *AppRoutes) DefiningAppRoutes() chi.Router {
 
 			// добавить/изменить текстовые данные
 			r.With(
-				jwtauth.Verify(jwtTokenObject, accessService.FindTokenByRequest),
+				jwtauth.Verify(jwtTokenObject, ar.accessService.FindTokenByRequest),
 				jwtauth.Authenticator(jwtTokenObject),
 				decryptDataHandler.HandleDecryptData, // расшифровка тела запроса
 				NewValidatorHandler(new(textDataRequest), ar.log).HandleValidation,
@@ -120,7 +117,7 @@ func (ar *AppRoutes) DefiningAppRoutes() chi.Router {
 
 			// инициализация приёма файла, базовые данные о файле
 			r.With(
-				jwtauth.Verify(jwtTokenObject, accessService.FindTokenByRequest),
+				jwtauth.Verify(jwtTokenObject, ar.accessService.FindTokenByRequest),
 				jwtauth.Authenticator(jwtTokenObject),
 				decryptDataHandler.HandleDecryptData, // расшифровка тела запроса
 				NewValidatorHandler(new(fileDataInitRequest), ar.log).HandleValidation,
@@ -128,14 +125,14 @@ func (ar *AppRoutes) DefiningAppRoutes() chi.Router {
 
 			// приём данных файла
 			r.With(
-				jwtauth.Verify(jwtTokenObject, accessService.FindTokenByRequest),
+				jwtauth.Verify(jwtTokenObject, ar.accessService.FindTokenByRequest),
 				jwtauth.Authenticator(jwtTokenObject),
 				decryptDataHandler.HandleDecryptData, // расшифровка тела запроса
 			).Post("/file_data/load/{file_uuid}/{part}", fileDataHandler.HandleAction)
 
 			// отдача файла клиенту
 			r.With(
-				jwtauth.Verify(jwtTokenObject, accessService.FindTokenByRequest),
+				jwtauth.Verify(jwtTokenObject, ar.accessService.FindTokenByRequest),
 				jwtauth.Authenticator(jwtTokenObject),
 				decryptDataHandler.HandleEncryptData, // шифрует исходящий запрос
 			).Post("/file_data/get/{file_uuid}/{part}", fileDataHandler.HandleGetAction)

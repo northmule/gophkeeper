@@ -80,8 +80,6 @@ func (r *RegistrationHandler) HandleRegistration(res http.ResponseWriter, req *h
 		_ = render.Render(res, req, ErrInternalServerError)
 		return
 	}
-	uuu := new(models.User)
-	uuu.UUID = "2324"
 	var newUser models.User
 
 	newUser.Login = request.Login

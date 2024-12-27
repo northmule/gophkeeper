@@ -21,6 +21,8 @@ import (
 	"github.com/northmule/gophkeeper/internal/server/config"
 	"github.com/northmule/gophkeeper/internal/server/logger"
 	"github.com/northmule/gophkeeper/internal/server/repository"
+	service "github.com/northmule/gophkeeper/internal/server/services"
+	"github.com/northmule/gophkeeper/internal/server/services/access"
 	"github.com/northmule/gophkeeper/internal/server/storage"
 )
 
@@ -106,7 +108,12 @@ func run(ctx context.Context) error {
 	}
 
 	log.Info("Preparing the server for launch")
-	routes := handlers.NewAppRoutes(repositoryManager, store.DB, storage.NewSession(), log, cfg)
+	accessService := access.NewAccess(cfg)
+	cryptService, err := service.NewCrypt(cfg)
+	if err != nil {
+		return err
+	}
+	routes := handlers.NewAppRoutes(repositoryManager, store.DB, storage.NewSession(), log, cfg, accessService, cryptService)
 	httpServer := http.Server{
 		Addr:    cfg.Value().Address,
 		Handler: routes.DefiningAppRoutes(),
