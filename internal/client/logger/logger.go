@@ -4,10 +4,12 @@ import (
 	"go.uber.org/zap"
 )
 
+// Logger логгер клиента
 type Logger struct {
 	*zap.SugaredLogger
 }
 
+// NewLogger конструктор
 func NewLogger(level string) (*Logger, error) {
 	lvl, err := zap.ParseAtomicLevel(level)
 	if err != nil {

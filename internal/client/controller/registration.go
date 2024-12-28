@@ -31,6 +31,7 @@ type registrationRequest struct {
 	Email    string `json:"email"`
 }
 
+// RegistrationResponse ответ
 type RegistrationResponse struct {
 	Value string
 }

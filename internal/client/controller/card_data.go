@@ -29,6 +29,7 @@ func NewCardData(cfg *config.Config, crypt service.Cryptographer, logger *logger
 	}
 }
 
+// CardDataResponse ответ
 type CardDataResponse struct {
 	Value string
 }

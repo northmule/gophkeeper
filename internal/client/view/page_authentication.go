@@ -43,6 +43,7 @@ func (m *pageAuthentication) Init() tea.Cmd {
 	return textinput.Blink
 }
 
+// Update обновление страницы
 func (m *pageAuthentication) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	var cmd tea.Cmd
@@ -114,6 +115,7 @@ func (m *pageAuthentication) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// View внешний вид
 func (m *pageAuthentication) View() string {
 
 	c := m.Choice

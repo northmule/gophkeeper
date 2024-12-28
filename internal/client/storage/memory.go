@@ -47,10 +47,12 @@ func (s *MemoryStorage) SetToken(token string) {
 	s.token = token
 }
 
+// Token значение токена
 func (s *MemoryStorage) Token() string {
 	return s.token
 }
 
+// ResetToken сбросить токен
 func (s *MemoryStorage) ResetToken() {
 	s.token = ""
 }

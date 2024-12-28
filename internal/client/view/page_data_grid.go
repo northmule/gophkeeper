@@ -104,6 +104,7 @@ func (m *pageDataGrid) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
+// View контент страницы
 func (m pageDataGrid) View() string {
 	title := renderTitle("Все данные")
 	tpl := "%s\n\n"

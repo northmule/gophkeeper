@@ -9,12 +9,14 @@ import (
 	"github.com/northmule/gophkeeper/internal/server/storage"
 )
 
+// CardDataRepository репозитарий карт
 type CardDataRepository struct {
 	store storage.DBQuery
 
 	sqlFindOneByUUID *sql.Stmt
 }
 
+// NewCardDataRepository конструктор
 func NewCardDataRepository(store storage.DBQuery) (*CardDataRepository, error) {
 	var err error
 	instance := new(CardDataRepository)

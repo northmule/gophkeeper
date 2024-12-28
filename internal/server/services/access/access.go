@@ -17,6 +17,7 @@ type Access struct {
 	cfg *config.Config
 }
 
+// AccessService серис доступа
 type AccessService interface {
 	PasswordHash(password string) (string, error)
 	FillJWTToken() *jwtauth.JWTAuth

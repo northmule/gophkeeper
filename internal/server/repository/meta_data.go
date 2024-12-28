@@ -10,12 +10,14 @@ import (
 	"github.com/northmule/gophkeeper/internal/server/storage"
 )
 
+// MetaDataRepository репозитарий доп. данных
 type MetaDataRepository struct {
 	store storage.DBQuery
 
 	sqlAllFindByDataUUID *sql.Stmt
 }
 
+// NewMetaDataRepository конструктор
 func NewMetaDataRepository(store storage.DBQuery) (*MetaDataRepository, error) {
 	var err error
 	instance := new(MetaDataRepository)

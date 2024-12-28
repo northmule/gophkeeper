@@ -9,6 +9,7 @@ import (
 	"github.com/northmule/gophkeeper/internal/server/storage"
 )
 
+// UserRepository репозитарий пользователей
 type UserRepository struct {
 	store          storage.DBQuery
 	sqlFindByLogin *sql.Stmt
@@ -20,6 +21,7 @@ const timeOut = 5000000 * time.Second // todo only debug
 
 type ErrorMsg error
 
+// NewUserRepository конструктор
 func NewUserRepository(store storage.DBQuery) (*UserRepository, error) {
 	instance := UserRepository{
 		store: store,
@@ -43,6 +45,7 @@ func NewUserRepository(store storage.DBQuery) (*UserRepository, error) {
 	return &instance, nil
 }
 
+// FindOneByLogin поиск по логину
 func (r *UserRepository) FindOneByLogin(ctx context.Context, login string) (*models.User, error) {
 	user := models.User{}
 	ctx, cancel := context.WithTimeout(ctx, timeOut)
@@ -66,6 +69,7 @@ func (r *UserRepository) FindOneByLogin(ctx context.Context, login string) (*mod
 	return &user, nil
 }
 
+// FindOneByUUID поис по uuid
 func (r *UserRepository) FindOneByUUID(ctx context.Context, uuid string) (*models.User, error) {
 	user := models.User{}
 	ctx, cancel := context.WithTimeout(ctx, timeOut)
@@ -89,6 +93,7 @@ func (r *UserRepository) FindOneByUUID(ctx context.Context, uuid string) (*model
 	return &user, nil
 }
 
+// CreateNewUser новый пользователь
 func (r *UserRepository) CreateNewUser(ctx context.Context, user models.User) (int64, error) {
 	ctx, cancel := context.WithTimeout(ctx, timeOut)
 	defer cancel()
@@ -106,6 +111,7 @@ func (r *UserRepository) CreateNewUser(ctx context.Context, user models.User) (i
 	return id, nil
 }
 
+// TxCreateNewUser создание пользователя в транзакции
 func (r *UserRepository) TxCreateNewUser(ctx context.Context, tx storage.TxDBQuery, user models.User) (int64, error) {
 	ctx, cancel := context.WithTimeout(ctx, timeOut)
 	defer cancel()

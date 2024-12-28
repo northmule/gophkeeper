@@ -25,14 +25,14 @@ type RegistrationHandler struct {
 }
 
 type registrationRequest struct {
-	Login    string `json:"login" validate:"required,min=3,max=50"`
+	Login    string `json:"login" validate:"required,min=2,max=50"`
 	Password string `json:"password" validate:"required,min=3,max=30"`
 	Email    string `json:"email" validate:"required,email"`
 }
 
 type authenticationRequest struct {
-	Login    string `json:"login" validate:"required,min=3,max=50"`
-	Password string `json:"password" validate:"required,min=10,max=100"`
+	Login    string `json:"login" validate:"required,min=2,max=50"`
+	Password string `json:"password" validate:"required,min=3,max=100"`
 }
 
 func NewRegistrationHandler(manager repository.Repository, session storage.SessionManager, accessService access.AccessService, log *logger.Logger) *RegistrationHandler {

@@ -19,6 +19,7 @@ type Crypt struct {
 	cfg *config.Config
 }
 
+// CryptService общий интерфейс
 type CryptService interface {
 	EncryptRSA(data []byte) ([]byte, error)
 	DecryptRSA(data []byte) ([]byte, error)

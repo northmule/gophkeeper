@@ -128,6 +128,7 @@ func (m *pageCardData) SetEditableData(data *model_data.CardDataRequest) *pageCa
 	return m
 }
 
+// SetPageGrid установка значения страницы
 func (m *pageCardData) SetPageGrid(page *pageDataGrid) *pageCardData {
 	m.gridPage = page
 
@@ -138,6 +139,7 @@ func (m *pageCardData) Init() tea.Cmd {
 	return textinput.Blink
 }
 
+// Update обновление страницы
 func (m *pageCardData) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	var cmd tea.Cmd
@@ -248,6 +250,7 @@ func (m *pageCardData) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+// View внешний вид
 func (m *pageCardData) View() string {
 
 	c := m.Choice

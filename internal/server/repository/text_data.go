@@ -15,6 +15,7 @@ type TextDataRepository struct {
 	sqlFindOneByUUID *sql.Stmt
 }
 
+// NewTextDataRepository конструктор
 func NewTextDataRepository(store storage.DBQuery) (*TextDataRepository, error) {
 	var err error
 	instance := new(TextDataRepository)

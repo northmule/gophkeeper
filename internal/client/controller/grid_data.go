@@ -29,6 +29,7 @@ func NewGridData(cfg *config.Config, crypt service.Cryptographer, logger *logger
 	}
 }
 
+// GridDataResponse ответ
 type GridDataResponse struct {
 	model_data.ListDataItemsResponse
 }

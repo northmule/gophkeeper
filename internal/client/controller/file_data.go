@@ -34,6 +34,7 @@ func NewFileData(cfg *config.Config, crypt service.Cryptographer, logger *logger
 	}
 }
 
+// FileDataResponse ответ
 type FileDataResponse struct {
 	// Адрес без хоста для загрузки данных файла
 	UploadPath string `json:"upload_path"`
@@ -142,6 +143,7 @@ func (c *FileData) UploadFile(token string, url string, file *os.File) error {
 	return nil
 }
 
+// DownLoadFile загрузка файла
 func (c *FileData) DownLoadFile(token string, fileName string, dataUUID string) error {
 	requestURL := fmt.Sprintf("%s/api/v1/file_data/get/%s/%s", c.cfg.Value().ServerAddress, dataUUID, "0")
 	ctx := context.Background()

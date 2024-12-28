@@ -29,6 +29,7 @@ func NewTextData(cfg *config.Config, crypt service.Cryptographer, logger *logger
 	}
 }
 
+// TextDataResponse ответ
 type TextDataResponse struct {
 	Value string
 }

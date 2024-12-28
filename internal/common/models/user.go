@@ -2,6 +2,7 @@ package models
 
 import "time"
 
+// User пользователь
 type User struct {
 	Common
 	Login            string    `json:"login"`

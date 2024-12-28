@@ -31,6 +31,7 @@ type authenticationRequest struct {
 	Password string `json:"password"`
 }
 
+// AuthenticationResponse ответ
 type AuthenticationResponse struct {
 	Value string
 }

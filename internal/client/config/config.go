@@ -26,6 +26,7 @@ type ServerConfig struct {
 // ErrorCfg ошибка конфигурации
 type ErrorCfg error
 
+// NewConfig конструктор
 func NewConfig() *Config {
 	instance := new(Config)
 	instance.v = viper.New()
