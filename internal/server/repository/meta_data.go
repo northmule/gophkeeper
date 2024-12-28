@@ -86,21 +86,16 @@ func (r *MetaDataRepository) ReplaceMetaByDataUUID(ctx context.Context, dataUUID
 	if tx, err = r.store.Begin(); err != nil {
 		return ErrorMsg(err)
 	}
-	rows, err := tx.QueryContext(ctx, `delete from "meta_data" where data_uuid = $1`, dataUUID)
+	_, err = tx.QueryContext(ctx, `delete from "meta_data" where data_uuid = $1`, dataUUID)
 	if err != nil {
-		return ErrorMsg(err)
-	}
-	err = rows.Err()
-	if err != nil {
-		err = errors.Join(rows.Err(), tx.Rollback())
-		return ErrorMsg(err)
+		return ErrorMsg(tx.Rollback())
 	}
 	// insert новых
 	for _, item := range metaDataList {
 		insert := tx.QueryRowContext(ctx, `insert into meta_data (meta_name, meta_value, data_uuid) values ($1, $2, $3)`, item.MetaName, item.MetaValue, item.DataUUID)
 		err = insert.Err()
 		if err != nil {
-			return ErrorMsg(err)
+			return ErrorMsg(errors.Join(err, tx.Rollback()))
 		}
 	}
 
