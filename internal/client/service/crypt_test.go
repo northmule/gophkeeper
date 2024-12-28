@@ -130,3 +130,106 @@ func TestNewCrypt_EncryptionKeyFileError(t *testing.T) {
 
 	os.RemoveAll(mockCfg.Value().PathKeys)
 }
+
+func TestCrypt_EncryptRSA(t *testing.T) {
+	mockCfg := config.NewConfig()
+	mockCfg.Value().PathPublicKeyServer = path.Join("testpath")
+	mockCfg.Value().PathKeys = path.Join("testpath")
+
+	os.MkdirAll(mockCfg.Value().PathKeys, 0755)
+	os.WriteFile(filepath.Join(mockCfg.Value().PathKeys, keys.PrivateKeyFileNameForEncryption), []byte("encryption_key"), 0644)
+
+	serialNumber, _ := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), 128))
+	kk := keys.NewKeys(keys.Options{
+		Generator:    signers.NewRsaSigner(),
+		SavePath:     mockCfg.Value().PathKeys,
+		Organization: "Go32_client",
+		Country:      "RU",
+		SerialNumber: serialNumber,
+	})
+	_ = kk.InitSelfSigned()
+
+	defer os.RemoveAll("testpath")
+	crypt, _ := NewCrypt(mockCfg)
+	v, e := crypt.EncryptRSA([]byte("text"))
+	assert.NoError(t, e)
+	assert.NotEmpty(t, v)
+}
+func TestCrypt_DecryptRSA(t *testing.T) {
+	mockCfg := config.NewConfig()
+	mockCfg.Value().PathPublicKeyServer = path.Join("testpath")
+	mockCfg.Value().PathKeys = path.Join("testpath")
+
+	os.MkdirAll(mockCfg.Value().PathKeys, 0755)
+	os.WriteFile(filepath.Join(mockCfg.Value().PathKeys, keys.PrivateKeyFileNameForEncryption), []byte("encryption_key"), 0644)
+
+	serialNumber, _ := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), 128))
+	kk := keys.NewKeys(keys.Options{
+		Generator:    signers.NewRsaSigner(),
+		SavePath:     mockCfg.Value().PathKeys,
+		Organization: "Go32_client",
+		Country:      "RU",
+		SerialNumber: serialNumber,
+	})
+	_ = kk.InitSelfSigned()
+
+	defer os.RemoveAll("testpath")
+	crypt, _ := NewCrypt(mockCfg)
+	vv, _ := crypt.EncryptRSA([]byte("text"))
+	v, e := crypt.DecryptRSA(vv)
+	assert.NoError(t, e)
+	assert.NotEmpty(t, v)
+}
+
+func TestCrypt_EncryptAES(t *testing.T) {
+	mockCfg := config.NewConfig()
+	mockCfg.Value().PathPublicKeyServer = path.Join("testpath")
+	mockCfg.Value().PathKeys = path.Join("testpath")
+	key := make([]byte, 32) // AES-256 key
+	os.MkdirAll(mockCfg.Value().PathKeys, 0755)
+	os.WriteFile(filepath.Join(mockCfg.Value().PathKeys, keys.PrivateKeyFileNameForEncryption), key, 0644)
+
+	serialNumber, _ := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), 128))
+	kk := keys.NewKeys(keys.Options{
+		Generator:    signers.NewRsaSigner(),
+		SavePath:     mockCfg.Value().PathKeys,
+		Organization: "Go32_client",
+		Country:      "RU",
+		SerialNumber: serialNumber,
+	})
+	_ = kk.InitSelfSigned()
+
+	defer os.RemoveAll("testpath")
+	crypt, _ := NewCrypt(mockCfg)
+	v, e := crypt.EncryptAES([]byte("text"))
+	assert.NoError(t, e)
+	assert.NotEmpty(t, v)
+}
+
+func TestCrypt_DecryptAES(t *testing.T) {
+	mockCfg := config.NewConfig()
+	mockCfg.Value().PathPublicKeyServer = path.Join("testpath")
+	mockCfg.Value().PathKeys = path.Join("testpath")
+
+	key := make([]byte, 32) // AES-256 key
+
+	os.MkdirAll(mockCfg.Value().PathKeys, 0755)
+	os.WriteFile(filepath.Join(mockCfg.Value().PathKeys, keys.PrivateKeyFileNameForEncryption), key, 0644)
+
+	serialNumber, _ := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), 128))
+	kk := keys.NewKeys(keys.Options{
+		Generator:    signers.NewRsaSigner(),
+		SavePath:     mockCfg.Value().PathKeys,
+		Organization: "Go32_client",
+		Country:      "RU",
+		SerialNumber: serialNumber,
+	})
+	_ = kk.InitSelfSigned()
+
+	defer os.RemoveAll("testpath")
+	crypt, _ := NewCrypt(mockCfg)
+	vv, _ := crypt.EncryptAES([]byte("text"))
+	v, e := crypt.DecryptAES(vv)
+	assert.NoError(t, e)
+	assert.NotEmpty(t, v)
+}

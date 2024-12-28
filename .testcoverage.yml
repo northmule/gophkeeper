@@ -32,3 +32,4 @@ exclude:
     - ^mock/*.go
     - ^errors.go
     - ^rctx/*.go
+    - ^internal/server/api/handlers/transaction.go # транзакция не моккается

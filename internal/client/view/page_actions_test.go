@@ -57,6 +57,31 @@ func TestPageAction_Update(t *testing.T) {
 			assert.Equal(t, tt.expected.Choice, page.Choice)
 		})
 	}
+	// прочие кейсы
+	t.Run("choice 1", func(t *testing.T) {
+		pa := pageAction{Choice: 1, mainPage: mainPage}
+		msg := tea.KeyMsg{Type: tea.KeyEnter}
+		m, _ := pa.Update(msg)
+		assert.NotNil(t, m)
+	})
+	t.Run("choice 2", func(t *testing.T) {
+		pa := pageAction{Choice: 2, mainPage: mainPage}
+		msg := tea.KeyMsg{Type: tea.KeyEnter}
+		m, _ := pa.Update(msg)
+		assert.NotNil(t, m)
+	})
+	t.Run("choice 3", func(t *testing.T) {
+		pa := pageAction{Choice: 3, mainPage: mainPage}
+		msg := tea.KeyMsg{Type: tea.KeyEnter}
+		m, _ := pa.Update(msg)
+		assert.NotNil(t, m)
+	})
+	t.Run("choice 4", func(t *testing.T) {
+		pa := pageAction{Choice: 4, mainPage: mainPage}
+		msg := tea.KeyMsg{Type: tea.KeyEnter}
+		m, _ := pa.Update(msg)
+		assert.NotNil(t, m)
+	})
 }
 
 func TestPageAction_View(t *testing.T) {

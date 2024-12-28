@@ -68,3 +68,57 @@ func TestManager_TextData(t *testing.T) {
 	textData := manager.TextData()
 	assert.NotNil(t, textData)
 }
+
+func TestManager_FileData(t *testing.T) {
+	mockConfig := makeMockConfig("")
+	log, err := logger.NewLogger("info")
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	cryptService := NewCryptMock(t)
+	manager, err := NewManager(mockConfig, cryptService, log)
+	assert.NoError(t, err)
+
+	data := manager.FileData()
+	assert.NotNil(t, data)
+}
+func TestManager_ItemData(t *testing.T) {
+	mockConfig := makeMockConfig("")
+	log, err := logger.NewLogger("info")
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	cryptService := NewCryptMock(t)
+	manager, err := NewManager(mockConfig, cryptService, log)
+	assert.NoError(t, err)
+
+	data := manager.ItemData()
+	assert.NotNil(t, data)
+}
+
+func TestManager_KeysData(t *testing.T) {
+	mockConfig := makeMockConfig("")
+	log, err := logger.NewLogger("info")
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	cryptService := NewCryptMock(t)
+	manager, err := NewManager(mockConfig, cryptService, log)
+	assert.NoError(t, err)
+
+	data := manager.KeysData()
+	assert.NotNil(t, data)
+}
+func TestManager_Registration(t *testing.T) {
+	mockConfig := makeMockConfig("")
+	log, err := logger.NewLogger("info")
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	cryptService := NewCryptMock(t)
+	manager, err := NewManager(mockConfig, cryptService, log)
+	assert.NoError(t, err)
+
+	data := manager.Registration()
+	assert.NotNil(t, data)
+}

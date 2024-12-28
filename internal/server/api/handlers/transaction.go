@@ -15,6 +15,7 @@ type TransactionHandler struct {
 	log *logger.Logger
 }
 
+// NewTransactionHandler конструктор
 func NewTransactionHandler(db storage.DBQuery, log *logger.Logger) *TransactionHandler {
 	instance := &TransactionHandler{
 		db:  db,
@@ -24,6 +25,7 @@ func NewTransactionHandler(db storage.DBQuery, log *logger.Logger) *TransactionH
 	return instance
 }
 
+// Transaction открывает транзакцию в начале отбработки запроса
 func (th *TransactionHandler) Transaction(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		var err error

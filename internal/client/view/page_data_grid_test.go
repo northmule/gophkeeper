@@ -20,9 +20,9 @@ type MockManagerController struct {
 	mock.Mock
 }
 
-func (m *MockManagerController) Authentication() *controller.Authentication {
+func (m *MockManagerController) Authentication() controller.AuthenticationDataController {
 	args := m.Called()
-	return args.Get(0).(*controller.Authentication)
+	return args.Get(0).(controller.AuthenticationDataController)
 }
 
 func (m *MockManagerController) CardData() *controller.CardData {
@@ -50,9 +50,9 @@ func (m *MockManagerController) ItemData() controller.ItemDataController {
 	return args.Get(0).(controller.ItemDataController)
 }
 
-func (m *MockManagerController) KeysData() *controller.KeysData {
+func (m *MockManagerController) KeysData() controller.KeyDataController {
 	args := m.Called()
-	return args.Get(0).(*controller.KeysData)
+	return args.Get(0).(controller.KeyDataController)
 }
 
 func (m *MockManagerController) Registration() controller.RegistrationController {
@@ -60,7 +60,7 @@ func (m *MockManagerController) Registration() controller.RegistrationController
 	return args.Get(0).(*mockRegistration)
 }
 
-// MockGridDataController is a mock implementation of GridDataController.
+// MockGridDataController mock
 type MockGridDataController struct {
 	mock.Mock
 }
@@ -70,7 +70,7 @@ func (m *MockGridDataController) Send(token string) (*controller.GridDataRespons
 	return args.Get(0).(*controller.GridDataResponse), args.Error(1)
 }
 
-// MockItemDataController is a mock implementation of ItemDataController.
+// MockItemDataController mock
 type MockItemDataController struct {
 	mock.Mock
 }
@@ -78,6 +78,39 @@ type MockItemDataController struct {
 func (m *MockItemDataController) Send(token string, dataUUID string) (*model_data.DataByUUIDResponse, error) {
 	args := m.Called(token, dataUUID)
 	return args.Get(0).(*model_data.DataByUUIDResponse), args.Error(1)
+}
+
+// MockAuthenticationDataController mock
+type MockAuthenticationDataController struct {
+	mock.Mock
+}
+
+func (m *MockAuthenticationDataController) Send(login string, password string) (*controller.AuthenticationResponse, error) {
+	args := m.Called(login, password)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*controller.AuthenticationResponse), args.Error(1)
+}
+
+// MockKeyDataController mock
+type MockKeyDataController struct {
+	mock.Mock
+}
+
+func (m *MockKeyDataController) UploadClientPublicKey(token string) error {
+	args := m.Called(token)
+	return args.Error(0)
+}
+
+func (m *MockKeyDataController) DownloadPublicServerKey(token string) error {
+	args := m.Called(token)
+	return args.Error(0)
+}
+
+func (m *MockKeyDataController) UploadClientPrivateKey(token string) error {
+	args := m.Called(token)
+	return args.Error(0)
 }
 
 func TestPageDataGrid_Init(t *testing.T) {

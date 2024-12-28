@@ -44,13 +44,13 @@ func NewManager(cfg *config.Config, cryptService service.Cryptographer, logger *
 
 // ManagerController интерфейс для передачи в модели
 type ManagerController interface {
-	Authentication() *Authentication
+	Authentication() AuthenticationDataController
 	CardData() *CardData
 	TextData() TextDataController
 	FileData() FileDataController
 	GridData() GridDataController
 	ItemData() ItemDataController
-	KeysData() *KeysData
+	KeysData() KeyDataController
 	Registration() RegistrationController
 }
 
@@ -81,8 +81,20 @@ type TextDataController interface {
 	Send(token string, requestData *model_data.TextDataRequest) (*TextDataResponse, error)
 }
 
+// AuthenticationDataController контроллер
+type AuthenticationDataController interface {
+	Send(login string, password string) (*AuthenticationResponse, error)
+}
+
+// KeyDataController контроллер
+type KeyDataController interface {
+	UploadClientPublicKey(token string) error
+	DownloadPublicServerKey(token string) error
+	UploadClientPrivateKey(token string) error
+}
+
 // Authentication контроллер
-func (manager *Manager) Authentication() *Authentication {
+func (manager *Manager) Authentication() AuthenticationDataController {
 	return manager.authentication
 }
 
@@ -112,7 +124,7 @@ func (manager *Manager) ItemData() ItemDataController {
 }
 
 // KeysData контроллер
-func (manager *Manager) KeysData() *KeysData {
+func (manager *Manager) KeysData() KeyDataController {
 	return manager.keysData
 }
 
