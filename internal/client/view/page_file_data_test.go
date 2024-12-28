@@ -145,6 +145,17 @@ func TestUpdate(t *testing.T) {
 	_, cmd = page.Update(msg)
 	assert.Equal(t, "Файл получен", page.responseMessage)
 	assert.NotNil(t, cmd)
+
+	page.Choice = 1
+	msg = tea.KeyMsg{Type: tea.KeyEnter}
+	_, cmd = page.Update(msg)
+	assert.NotNil(t, cmd)
+
+	page.Choice = 4
+	msg = tea.KeyMsg{Type: tea.KeyEnter}
+	_, cmd = page.Update(msg)
+	page.selectedFile = ""
+	assert.NotNil(t, cmd)
 }
 
 func TestView(t *testing.T) {
