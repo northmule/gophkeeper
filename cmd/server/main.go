@@ -61,11 +61,15 @@ func run(ctx context.Context) error {
 		return err
 	}
 
-	log.Info("Initializing migrations")
-	migrations := db.NewMigrations(store.RawDB)
-	err = migrations.Up(ctx)
-	if err != nil {
-		return err
+	if cfg.Value().MigrationsApply {
+		log.Info("Initializing migrations")
+		migrations := db.NewMigrations(store.RawDB)
+		err = migrations.Up(ctx)
+		if err != nil {
+			return err
+		}
+	} else {
+		log.Info("Skip Initializing migrations")
 	}
 
 	log.Info("Initializing the Repository Manager")

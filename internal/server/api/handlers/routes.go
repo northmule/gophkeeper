@@ -67,73 +67,54 @@ func (ar *AppRoutes) DefiningAppRoutes() chi.Router {
 			// Начальный jwt объект
 			jwtTokenObject := ar.accessService.FillJWTToken()
 
+			// Проверка токена, заполнения данных о пользователе
+			r.Use(jwtauth.Verify(jwtTokenObject, ar.accessService.FindTokenByRequest))
+			r.Use(jwtauth.Authenticator(jwtTokenObject))
+
 			// приём от клиента публичного ключа
-			r.With(
-				jwtauth.Verify(jwtTokenObject, ar.accessService.FindTokenByRequest),
-				jwtauth.Authenticator(jwtTokenObject),
-			).Post("/save_public_key", keysDataHandler.HandleSaveClientPublicKey)
+			r.Post("/save_public_key", keysDataHandler.HandleSaveClientPublicKey)
 
 			// приём от клиента приватного ключа(aes используется для шифрования данных)
-			r.With(
-				jwtauth.Verify(jwtTokenObject, ar.accessService.FindTokenByRequest),
-				jwtauth.Authenticator(jwtTokenObject),
-			).Post("/save_client_private_key", keysDataHandler.HandleSaveClientPrivateKey)
+			r.Post("/save_client_private_key", keysDataHandler.HandleSaveClientPrivateKey)
 
 			// Клиент забирает публичный ключ сервера
-			r.With(
-				jwtauth.Verify(jwtTokenObject, ar.accessService.FindTokenByRequest),
-				jwtauth.Authenticator(jwtTokenObject),
-			).Post("/download_server_public_key", keysDataHandler.HandleDownloadServerPublicKey)
+			r.Post("/download_server_public_key", keysDataHandler.HandleDownloadServerPublicKey)
 
 			// список сохранённых данных
 			r.With(
-				jwtauth.Verify(jwtTokenObject, ar.accessService.FindTokenByRequest),
-				jwtauth.Authenticator(jwtTokenObject),
 				decryptDataHandler.HandleEncryptData, // шифрует исходящий запрос
 			).Get("/items_list", itemsListHandler.HandleItemsList)
 
 			// Получить данные по uuid
 			r.With(
-				jwtauth.Verify(jwtTokenObject, ar.accessService.FindTokenByRequest),
-				jwtauth.Authenticator(jwtTokenObject),
 				decryptDataHandler.HandleEncryptData, // шифрует исходящий запрос
 			).Get("/item_get/{uuid}", itemDataHandler.HandleItem)
 
 			// добавить/изменить данные банковской карты
 			r.With(
-				jwtauth.Verify(jwtTokenObject, ar.accessService.FindTokenByRequest),
-				jwtauth.Authenticator(jwtTokenObject),
 				decryptDataHandler.HandleDecryptData, // расшифровка тела запроса
 				NewValidatorHandler(new(cardDataRequest), ar.log).HandleValidation,
 			).Post("/save_card_data", cardDataHandler.HandleSave)
 
 			// добавить/изменить текстовые данные
 			r.With(
-				jwtauth.Verify(jwtTokenObject, ar.accessService.FindTokenByRequest),
-				jwtauth.Authenticator(jwtTokenObject),
 				decryptDataHandler.HandleDecryptData, // расшифровка тела запроса
 				NewValidatorHandler(new(textDataRequest), ar.log).HandleValidation,
 			).Post("/save_text_data", textDataHandler.HandleSave)
 
 			// инициализация приёма файла, базовые данные о файле
 			r.With(
-				jwtauth.Verify(jwtTokenObject, ar.accessService.FindTokenByRequest),
-				jwtauth.Authenticator(jwtTokenObject),
 				decryptDataHandler.HandleDecryptData, // расшифровка тела запроса
 				NewValidatorHandler(new(fileDataInitRequest), ar.log).HandleValidation,
 			).Post("/file_data/init", fileDataHandler.HandleInit)
 
 			// приём данных файла
 			r.With(
-				jwtauth.Verify(jwtTokenObject, ar.accessService.FindTokenByRequest),
-				jwtauth.Authenticator(jwtTokenObject),
 				decryptDataHandler.HandleDecryptData, // расшифровка тела запроса
 			).Post("/file_data/load/{file_uuid}/{part}", fileDataHandler.HandleAction)
 
 			// отдача файла клиенту
 			r.With(
-				jwtauth.Verify(jwtTokenObject, ar.accessService.FindTokenByRequest),
-				jwtauth.Authenticator(jwtTokenObject),
 				decryptDataHandler.HandleEncryptData, // шифрует исходящий запрос
 			).Post("/file_data/get/{file_uuid}/{part}", fileDataHandler.HandleGetAction)
 

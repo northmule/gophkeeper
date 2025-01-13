@@ -22,6 +22,8 @@ type ServerConfig struct {
 	// PathKeys место хранения ключей сервера
 	PathKeys      string `mapstructure:"PATH_KEYS"`
 	OverwriteKeys bool   `mapstructure:"OVERWRITE_KEYS"`
+	// MigrationsApply - true будут применяться миграции
+	MigrationsApply bool `mapstructure:"MIGRATIONS_APPLY"`
 }
 
 // ErrorCfg сообщение с ошибкой
