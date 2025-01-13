@@ -12,16 +12,31 @@ import (
 	"github.com/northmule/gophkeeper/internal/common/models"
 	"github.com/northmule/gophkeeper/internal/server/api/rctx"
 	"github.com/northmule/gophkeeper/internal/server/logger"
-	"github.com/northmule/gophkeeper/internal/server/repository"
-	"github.com/northmule/gophkeeper/internal/server/services/access"
 	"github.com/northmule/gophkeeper/internal/server/storage"
 )
 
 type RegistrationHandler struct {
-	manager       repository.Repository
-	session       storage.SessionManager
-	accessService access.AccessService
-	log           *logger.Logger
+	userFinder     UserFinder
+	userCreator    UserCreator
+	session        storage.SessionManager
+	passwordHasher PasswordHasher
+	log            *logger.Logger
+}
+
+// UserFinder поиск пользователя
+type UserFinder interface {
+	FindOneByLogin(ctx context.Context, login string) (*models.User, error)
+	FindOneByUUID(ctx context.Context, uuid string) (*models.User, error)
+}
+
+// UserCreator создание пользователя
+type UserCreator interface {
+	TxCreateNewUser(ctx context.Context, tx storage.TxDBQuery, user models.User) (int64, error)
+}
+
+// PasswordHasher хэшер пароля
+type PasswordHasher interface {
+	PasswordHash(password string) (string, error)
 }
 
 type registrationRequest struct {
@@ -35,12 +50,13 @@ type authenticationRequest struct {
 	Password string `json:"password" validate:"required,min=3,max=100"`
 }
 
-func NewRegistrationHandler(manager repository.Repository, session storage.SessionManager, accessService access.AccessService, log *logger.Logger) *RegistrationHandler {
+func NewRegistrationHandler(userFinder UserFinder, userCreator UserCreator, session storage.SessionManager, passwordHasher PasswordHasher, log *logger.Logger) *RegistrationHandler {
 	instance := &RegistrationHandler{
-		manager:       manager,
-		session:       session,
-		accessService: accessService,
-		log:           log,
+		userFinder:     userFinder,
+		userCreator:    userCreator,
+		session:        session,
+		passwordHasher: passwordHasher,
+		log:            log,
 	}
 	return instance
 }
@@ -63,7 +79,7 @@ func (r *RegistrationHandler) HandleRegistration(res http.ResponseWriter, req *h
 		return
 	}
 
-	user, err := r.manager.User().FindOneByLogin(req.Context(), request.Login)
+	user, err := r.userFinder.FindOneByLogin(req.Context(), request.Login)
 	if err != nil {
 		r.log.Error(err)
 		_ = render.Render(res, req, ErrInternalServerError)
@@ -74,7 +90,7 @@ func (r *RegistrationHandler) HandleRegistration(res http.ResponseWriter, req *h
 		_ = render.Render(res, req, ErrConflict(fmt.Errorf("the login '%s' is already occupied by the user", request.Login)))
 		return
 	}
-	passwordHash, err := r.accessService.PasswordHash(request.Password)
+	passwordHash, err := r.passwordHasher.PasswordHash(request.Password)
 	if err != nil {
 		r.log.Error(err)
 		_ = render.Render(res, req, ErrInternalServerError)
@@ -88,7 +104,7 @@ func (r *RegistrationHandler) HandleRegistration(res http.ResponseWriter, req *h
 	newUser.UUID = uuid.NewString()
 
 	tx := req.Context().Value(rctx.TransactionCtxKey).(*storage.Transaction)
-	userID, err := r.manager.User().TxCreateNewUser(req.Context(), tx, newUser)
+	userID, err := r.userCreator.TxCreateNewUser(req.Context(), tx, newUser)
 	if err != nil {
 		r.log.Error(err)
 		_ = render.Render(res, req, ErrInternalServerError)
@@ -126,14 +142,14 @@ func (r *RegistrationHandler) HandleAuthentication(res http.ResponseWriter, req 
 		return
 	}
 
-	user, err := r.manager.User().FindOneByLogin(req.Context(), request.Login)
+	user, err := r.userFinder.FindOneByLogin(req.Context(), request.Login)
 	if err != nil {
 		r.log.Error(err)
 		_ = render.Render(res, req, ErrInternalServerError)
 		return
 	}
 
-	passwordHash, err := r.accessService.PasswordHash(request.Password)
+	passwordHash, err := r.passwordHasher.PasswordHash(request.Password)
 	if err != nil {
 		r.log.Error(err)
 		_ = render.Render(res, req, ErrInternalServerError)

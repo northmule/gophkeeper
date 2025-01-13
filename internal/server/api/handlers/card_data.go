@@ -10,24 +10,49 @@ import (
 	"github.com/northmule/gophkeeper/internal/common/model_data"
 	"github.com/northmule/gophkeeper/internal/common/models"
 	"github.com/northmule/gophkeeper/internal/server/logger"
-	"github.com/northmule/gophkeeper/internal/server/repository"
-	"github.com/northmule/gophkeeper/internal/server/services/access"
+	"golang.org/x/net/context"
 )
 
 // CardDataHandler обрабатывает данные карт
 type CardDataHandler struct {
-	log           *logger.Logger
-	accessService access.AccessService
-	manager       repository.Repository
+	log             *logger.Logger
+	userFinderByJWT UserFinderByJWT
+	ownerCRUD       OwnerCRUD
+	cardDataCRUD    CardDataCRUD
+	metaDataCRUD    MetaDataCRUD
 }
 
 // NewCardDataHandler конструктор
-func NewCardDataHandler(accessService access.AccessService, manager repository.Repository, log *logger.Logger) *CardDataHandler {
+func NewCardDataHandler(userFinderByJWT UserFinderByJWT, ownerCRUD OwnerCRUD, cardDataCRUD CardDataCRUD, metaDataCRUD MetaDataCRUD, log *logger.Logger) *CardDataHandler {
 	return &CardDataHandler{
-		accessService: accessService,
-		manager:       manager,
-		log:           log,
+		userFinderByJWT: userFinderByJWT,
+		cardDataCRUD:    cardDataCRUD,
+		metaDataCRUD:    metaDataCRUD,
+		ownerCRUD:       ownerCRUD,
+		log:             log,
 	}
+}
+
+// OwnerCRUD поиск владельца
+type OwnerCRUD interface {
+	FindOneByUserUUIDAndDataUUIDAndDataType(ctx context.Context, userUuid string, dataUuid string, dataType string) (*models.Owner, error)
+	FindOneByUserUUIDAndDataUUID(ctx context.Context, userUuid string, dataUuid string) (*models.Owner, error)
+	Add(ctx context.Context, data *models.Owner) (int64, error)
+	AllOwnerData(ctx context.Context, userUUID string, offset int, limit int) ([]models.OwnerData, error)
+}
+
+// CardDataCRUD операции над данными
+type CardDataCRUD interface {
+	Add(ctx context.Context, data *models.CardData) (int64, error)
+	Update(ctx context.Context, data *models.CardData) error
+	FindOneByUUID(ctx context.Context, uuid string) (*models.CardData, error)
+}
+
+// MetaDataCRUD операции над данными
+type MetaDataCRUD interface {
+	FindOneByUUID(ctx context.Context, uuid string) ([]models.MetaData, error)
+	Add(ctx context.Context, data *models.MetaData) (int64, error)
+	ReplaceMetaByDataUUID(ctx context.Context, dataUUID string, metaDataList []models.MetaData) error
 }
 
 type cardDataRequest struct {
@@ -55,7 +80,7 @@ func (h *CardDataHandler) HandleSave(res http.ResponseWriter, req *http.Request)
 		_ = render.Render(res, req, ErrBadRequest)
 		return
 	}
-	userUUID, err = h.accessService.GetUserUUIDByJWTToken(req.Context())
+	userUUID, err = h.userFinderByJWT.GetUserUUIDByJWTToken(req.Context())
 	if err != nil {
 		h.log.Error(err)
 		_ = render.Render(res, req, ErrBadRequest)
@@ -65,7 +90,7 @@ func (h *CardDataHandler) HandleSave(res http.ResponseWriter, req *http.Request)
 	if request.UUID != "" { // редактирование
 		dataUUID := request.UUID
 		// владелец данных
-		owner, err = h.manager.Owner().FindOneByUserUUIDAndDataUUIDAndDataType(req.Context(), userUUID, dataUUID, data_type.CardType)
+		owner, err = h.ownerCRUD.FindOneByUserUUIDAndDataUUIDAndDataType(req.Context(), userUUID, dataUUID, data_type.CardType)
 		if err != nil {
 			h.log.Error(err)
 			_ = render.Render(res, req, ErrBadRequest)
@@ -76,7 +101,7 @@ func (h *CardDataHandler) HandleSave(res http.ResponseWriter, req *http.Request)
 			_ = render.Render(res, req, ErrNotFound)
 			return
 		}
-		cardData, err = h.manager.CardData().FindOneByUUID(req.Context(), dataUUID)
+		cardData, err = h.cardDataCRUD.FindOneByUUID(req.Context(), dataUUID)
 		if err != nil {
 			h.log.Error(err)
 			_ = render.Render(res, req, ErrBadRequest)
@@ -98,7 +123,7 @@ func (h *CardDataHandler) HandleSave(res http.ResponseWriter, req *http.Request)
 		cardData.Value.PhoneHolder = request.PhoneHolder
 		cardData.Value.CurrentAccountNumber = request.CurrentAccountNumber
 
-		err = h.manager.CardData().Update(req.Context(), cardData)
+		err = h.cardDataCRUD.Update(req.Context(), cardData)
 		if err != nil {
 			h.log.Error(err)
 			_ = render.Render(res, req, ErrInternalServerError)
@@ -117,7 +142,7 @@ func (h *CardDataHandler) HandleSave(res http.ResponseWriter, req *http.Request)
 			}
 		}
 		// перезапись мета
-		err = h.manager.MetaData().ReplaceMetaByDataUUID(req.Context(), dataUUID, newMeta)
+		err = h.metaDataCRUD.ReplaceMetaByDataUUID(req.Context(), dataUUID, newMeta)
 		if err != nil {
 			h.log.Error(err)
 			_ = render.Render(res, req, ErrInternalServerError)
@@ -143,7 +168,7 @@ func (h *CardDataHandler) HandleSave(res http.ResponseWriter, req *http.Request)
 		cardData.Value.PhoneHolder = request.PhoneHolder
 		cardData.Value.CurrentAccountNumber = request.CurrentAccountNumber
 
-		_, err = h.manager.CardData().Add(req.Context(), cardData)
+		_, err = h.cardDataCRUD.Add(req.Context(), cardData)
 		if err != nil {
 			h.log.Error(err)
 			_ = render.Render(res, req, ErrInternalServerError)
@@ -155,7 +180,7 @@ func (h *CardDataHandler) HandleSave(res http.ResponseWriter, req *http.Request)
 		owner.DataType = data_type.CardType
 		owner.DataUUID = dataUUID
 
-		_, err = h.manager.Owner().Add(req.Context(), owner)
+		_, err = h.ownerCRUD.Add(req.Context(), owner)
 		if err != nil {
 			h.log.Error(err)
 			_ = render.Render(res, req, ErrInternalServerError)
@@ -168,7 +193,7 @@ func (h *CardDataHandler) HandleSave(res http.ResponseWriter, req *http.Request)
 				metaData.MetaName = key
 				metaData.MetaValue.Value = value
 				metaData.DataUUID = dataUUID
-				_, err = h.manager.MetaData().Add(req.Context(), metaData)
+				_, err = h.metaDataCRUD.Add(req.Context(), metaData)
 				if err != nil {
 					h.log.Error(err)
 					_ = render.Render(res, req, ErrInternalServerError)

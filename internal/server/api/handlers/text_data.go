@@ -9,24 +9,34 @@ import (
 	"github.com/northmule/gophkeeper/internal/common/model_data"
 	"github.com/northmule/gophkeeper/internal/common/models"
 	"github.com/northmule/gophkeeper/internal/server/logger"
-	"github.com/northmule/gophkeeper/internal/server/repository"
-	"github.com/northmule/gophkeeper/internal/server/services/access"
+	"golang.org/x/net/context"
 )
 
 // TextDataHandler обрабатывает текстовые данные
 type TextDataHandler struct {
-	log           *logger.Logger
-	accessService access.AccessService
-	manager       repository.Repository
+	log             *logger.Logger
+	userFinderByJWT UserFinderByJWT
+	ownerCRUD       OwnerCRUD
+	metaDataCRUD    MetaDataCRUD
+	textDataCRUD    TextDataCRUD
 }
 
 // NewTextDataHandler конструктор
-func NewTextDataHandler(accessService access.AccessService, manager repository.Repository, log *logger.Logger) *TextDataHandler {
+func NewTextDataHandler(userFinderByJWT UserFinderByJWT, ownerCRUD OwnerCRUD, metaDataCRUD MetaDataCRUD, textDataCRUD TextDataCRUD, log *logger.Logger) *TextDataHandler {
 	return &TextDataHandler{
-		accessService: accessService,
-		manager:       manager,
-		log:           log,
+		userFinderByJWT: userFinderByJWT,
+		metaDataCRUD:    metaDataCRUD,
+		ownerCRUD:       ownerCRUD,
+		textDataCRUD:    textDataCRUD,
+		log:             log,
 	}
+}
+
+// TextDataCRUD операции над данными
+type TextDataCRUD interface {
+	FindOneByUUID(ctx context.Context, uuid string) (*models.TextData, error)
+	Add(ctx context.Context, data *models.TextData) (int64, error)
+	Update(ctx context.Context, data *models.TextData) error
 }
 
 type textDataRequest struct {
@@ -53,7 +63,7 @@ func (h *TextDataHandler) HandleSave(res http.ResponseWriter, req *http.Request)
 		_ = render.Render(res, req, ErrBadRequest)
 		return
 	}
-	userUUID, err = h.accessService.GetUserUUIDByJWTToken(req.Context())
+	userUUID, err = h.userFinderByJWT.GetUserUUIDByJWTToken(req.Context())
 	if err != nil {
 		h.log.Error(err)
 		_ = render.Render(res, req, ErrBadRequest)
@@ -63,7 +73,7 @@ func (h *TextDataHandler) HandleSave(res http.ResponseWriter, req *http.Request)
 	if request.UUID != "" { // редактирование
 		dataUUID := request.UUID
 		// владелец данных
-		owner, err = h.manager.Owner().FindOneByUserUUIDAndDataUUIDAndDataType(req.Context(), userUUID, dataUUID, data_type.TextType)
+		owner, err = h.ownerCRUD.FindOneByUserUUIDAndDataUUIDAndDataType(req.Context(), userUUID, dataUUID, data_type.TextType)
 		if err != nil {
 			h.log.Error(err)
 			_ = render.Render(res, req, ErrBadRequest)
@@ -74,7 +84,7 @@ func (h *TextDataHandler) HandleSave(res http.ResponseWriter, req *http.Request)
 			_ = render.Render(res, req, ErrNotFound)
 			return
 		}
-		textData, err = h.manager.TextData().FindOneByUUID(req.Context(), dataUUID)
+		textData, err = h.textDataCRUD.FindOneByUUID(req.Context(), dataUUID)
 		if err != nil {
 			h.log.Error(err)
 			_ = render.Render(res, req, ErrBadRequest)
@@ -89,7 +99,7 @@ func (h *TextDataHandler) HandleSave(res http.ResponseWriter, req *http.Request)
 		textData.Name = request.Name
 		textData.Value = request.Value
 
-		err = h.manager.TextData().Update(req.Context(), textData)
+		err = h.textDataCRUD.Update(req.Context(), textData)
 		if err != nil {
 			h.log.Error(err)
 			_ = render.Render(res, req, ErrInternalServerError)
@@ -108,7 +118,7 @@ func (h *TextDataHandler) HandleSave(res http.ResponseWriter, req *http.Request)
 			}
 		}
 		// перезапись мета
-		err = h.manager.MetaData().ReplaceMetaByDataUUID(req.Context(), dataUUID, newMeta)
+		err = h.metaDataCRUD.ReplaceMetaByDataUUID(req.Context(), dataUUID, newMeta)
 		if err != nil {
 			h.log.Error(err)
 			_ = render.Render(res, req, ErrInternalServerError)
@@ -125,7 +135,7 @@ func (h *TextDataHandler) HandleSave(res http.ResponseWriter, req *http.Request)
 		textData.Value = request.Value
 		textData.UUID = dataUUID
 
-		_, err = h.manager.TextData().Add(req.Context(), textData)
+		_, err = h.textDataCRUD.Add(req.Context(), textData)
 		if err != nil {
 			h.log.Error(err)
 			_ = render.Render(res, req, ErrInternalServerError)
@@ -138,7 +148,7 @@ func (h *TextDataHandler) HandleSave(res http.ResponseWriter, req *http.Request)
 		owner.DataType = data_type.TextType
 		owner.DataUUID = dataUUID
 
-		_, err = h.manager.Owner().Add(req.Context(), owner)
+		_, err = h.ownerCRUD.Add(req.Context(), owner)
 		if err != nil {
 			h.log.Error(err)
 			_ = render.Render(res, req, ErrInternalServerError)
@@ -152,7 +162,7 @@ func (h *TextDataHandler) HandleSave(res http.ResponseWriter, req *http.Request)
 				metaData.MetaName = key
 				metaData.MetaValue.Value = value
 				metaData.DataUUID = dataUUID
-				_, err = h.manager.MetaData().Add(req.Context(), metaData)
+				_, err = h.metaDataCRUD.Add(req.Context(), metaData)
 				if err != nil {
 					h.log.Error(err)
 					_ = render.Render(res, req, ErrInternalServerError)

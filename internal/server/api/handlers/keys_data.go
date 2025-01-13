@@ -12,9 +12,8 @@ import (
 	"github.com/northmule/gophkeeper/internal/common/models"
 	"github.com/northmule/gophkeeper/internal/server/config"
 	"github.com/northmule/gophkeeper/internal/server/logger"
-	"github.com/northmule/gophkeeper/internal/server/repository"
 	service "github.com/northmule/gophkeeper/internal/server/services"
-	"github.com/northmule/gophkeeper/internal/server/services/access"
+	"golang.org/x/net/context"
 )
 
 // Ожидаемая схема взаимодействия:
@@ -27,10 +26,11 @@ import (
 
 // KeysDataHandler обработка запросо с ключами
 type KeysDataHandler struct {
-	log            *logger.Logger
-	accessService  access.AccessService
-	manager        repository.Repository
-	expectedAction map[string]bool
+	log             *logger.Logger
+	userFinderByJWT UserFinderByJWT
+	keySaver        KeySaver
+	userFinder      UserFinder
+	expectedAction  map[string]bool
 
 	cfg            *config.Config
 	publicKeyPath  string
@@ -40,17 +40,24 @@ type KeysDataHandler struct {
 }
 
 // NewKeysDataHandler конструктор
-func NewKeysDataHandler(accessService access.AccessService, cryptService service.CryptService, manager repository.Repository, cfg *config.Config, log *logger.Logger) *KeysDataHandler {
+func NewKeysDataHandler(userFinderByJWT UserFinderByJWT, cryptService service.CryptService, keySaver KeySaver, userFinder UserFinder, cfg *config.Config, log *logger.Logger) *KeysDataHandler {
 
 	return &KeysDataHandler{
-		accessService:  accessService,
-		manager:        manager,
-		log:            log,
-		cfg:            cfg,
-		publicKeyPath:  path.Join(cfg.Value().PathKeys, keys.PublicKeyFileName),
-		privateKeyPath: path.Join(cfg.Value().PathKeys, keys.PrivateKeyFileName),
-		cryptService:   cryptService,
+		userFinderByJWT: userFinderByJWT,
+		keySaver:        keySaver,
+		userFinder:      userFinder,
+		log:             log,
+		cfg:             cfg,
+		publicKeyPath:   path.Join(cfg.Value().PathKeys, keys.PublicKeyFileName),
+		privateKeyPath:  path.Join(cfg.Value().PathKeys, keys.PrivateKeyFileName),
+		cryptService:    cryptService,
 	}
+}
+
+// KeySaver сохранение ключей
+type KeySaver interface {
+	SetPublicKey(ctx context.Context, data string, userUUID string) error
+	SetPrivateClientKey(ctx context.Context, data string, userUUID string) error
 }
 
 // HandleSaveClientPublicKey привязка публичного ключа клиента
@@ -60,7 +67,7 @@ func (h *KeysDataHandler) HandleSaveClientPublicKey(res http.ResponseWriter, req
 		userUUID string
 	)
 
-	userUUID, err = h.accessService.GetUserUUIDByJWTToken(req.Context())
+	userUUID, err = h.userFinderByJWT.GetUserUUIDByJWTToken(req.Context())
 	if err != nil {
 		h.log.Error(err)
 		_ = render.Render(res, req, ErrBadRequest)
@@ -90,7 +97,7 @@ func (h *KeysDataHandler) HandleSaveClientPublicKey(res http.ResponseWriter, req
 
 	keyString := string(keyBytes)
 
-	err = h.manager.User().SetPublicKey(req.Context(), keyString, userUUID)
+	err = h.keySaver.SetPublicKey(req.Context(), keyString, userUUID)
 	if err != nil {
 		h.log.Error(err)
 		_ = render.Render(res, req, ErrInternalServerError)
@@ -105,14 +112,14 @@ func (h *KeysDataHandler) HandleDownloadServerPublicKey(res http.ResponseWriter,
 		userUUID string
 		user     *models.User
 	)
-	userUUID, err = h.accessService.GetUserUUIDByJWTToken(req.Context())
+	userUUID, err = h.userFinderByJWT.GetUserUUIDByJWTToken(req.Context())
 	if err != nil {
 		h.log.Error(err)
 		_ = render.Render(res, req, ErrBadRequest)
 		return
 	}
 
-	user, err = h.manager.User().FindOneByUUID(req.Context(), userUUID)
+	user, err = h.userFinder.FindOneByUUID(req.Context(), userUUID)
 	if err != nil || user == nil {
 		h.log.Error(err)
 		_ = render.Render(res, req, ErrBadRequest)
@@ -141,7 +148,7 @@ func (h *KeysDataHandler) HandleSaveClientPrivateKey(res http.ResponseWriter, re
 		userUUID string
 	)
 
-	userUUID, err = h.accessService.GetUserUUIDByJWTToken(req.Context())
+	userUUID, err = h.userFinderByJWT.GetUserUUIDByJWTToken(req.Context())
 	if err != nil {
 		h.log.Error(err)
 		_ = render.Render(res, req, ErrBadRequest)
@@ -177,7 +184,7 @@ func (h *KeysDataHandler) HandleSaveClientPrivateKey(res http.ResponseWriter, re
 	}
 	keyString := string(keyBytes)
 	// Секретный ключ клиента сохраняется
-	err = h.manager.User().SetPrivateClientKey(req.Context(), keyString, userUUID)
+	err = h.keySaver.SetPrivateClientKey(req.Context(), keyString, userUUID)
 	if err != nil {
 		h.log.Error(err)
 		_ = render.Render(res, req, ErrInternalServerError)

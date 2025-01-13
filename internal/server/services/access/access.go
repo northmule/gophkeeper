@@ -17,14 +17,6 @@ type Access struct {
 	cfg *config.Config
 }
 
-// AccessService серис доступа
-type AccessService interface {
-	PasswordHash(password string) (string, error)
-	FillJWTToken() *jwtauth.JWTAuth
-	GetUserUUIDByJWTToken(ctx context.Context) (string, error)
-	FindTokenByRequest(r *http.Request) string
-}
-
 // NewAccess конструктор
 func NewAccess(cfg *config.Config) *Access {
 	return &Access{cfg: cfg}

@@ -72,12 +72,6 @@ func run(ctx context.Context) error {
 		log.Info("Skip Initializing migrations")
 	}
 
-	log.Info("Initializing the Repository Manager")
-	repositoryManager, err := repository.NewManager(store.DB)
-	if err != nil {
-		return err
-	}
-
 	serialNumber, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), 128))
 	if err != nil {
 		return err
@@ -117,7 +111,42 @@ func run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	routes := handlers.NewAppRoutes(repositoryManager, store.DB, storage.NewSession(), log, cfg, accessService, cryptService)
+
+	log.Info("Initializing the Repository Manager")
+	userRepository, err := repository.NewUserRepository(store.DB)
+	if err != nil {
+		return err
+	}
+	cardDataRepository, err := repository.NewCardDataRepository(store.DB)
+	if err != nil {
+		return err
+	}
+	ownerRepository, err := repository.NewOwnerRepository(store.DB)
+	if err != nil {
+		return err
+	}
+	metaDataRepository, err := repository.NewMetaDataRepository(store.DB)
+	if err != nil {
+		return err
+	}
+	textDataRepository, err := repository.NewTextDataRepository(store.DB)
+	if err != nil {
+		return err
+	}
+	fileDataRepository, err := repository.NewFileDataRepository(store.DB)
+	if err != nil {
+		return err
+	}
+
+	log.Info("Initializing the Routes")
+	routes := handlers.NewAppRoutes(store.DB, storage.NewSession(), log, cfg, accessService, cryptService).
+		SetFileDataRepository(fileDataRepository).
+		SetCardDataRepository(cardDataRepository).
+		SetMetaDataRepository(metaDataRepository).
+		SetOwnerRepository(ownerRepository).
+		SetTextDataRepository(textDataRepository).
+		SetUserRepository(userRepository)
+
 	httpServer := http.Server{
 		Addr:    cfg.Value().Address,
 		Handler: routes.DefiningAppRoutes(),

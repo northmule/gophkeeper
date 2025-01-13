@@ -6,23 +6,33 @@ import (
 
 	"github.com/go-chi/render"
 	"github.com/northmule/gophkeeper/internal/common/model_data"
+	"github.com/northmule/gophkeeper/internal/common/models"
 	"github.com/northmule/gophkeeper/internal/server/logger"
-	"github.com/northmule/gophkeeper/internal/server/repository"
-	"github.com/northmule/gophkeeper/internal/server/services/access"
+	"golang.org/x/net/context"
 )
 
 type ItemsListHandler struct {
-	log           *logger.Logger
-	accessService access.AccessService
-	manager       repository.Repository
+	log             *logger.Logger
+	userFinderByJWT UserFinderByJWT
+	dataFinder      AllOwnerDataFinder
 }
 
-func NewItemsListHandler(accessService access.AccessService, manager repository.Repository, log *logger.Logger) *ItemsListHandler {
+func NewItemsListHandler(userFinderByJWT UserFinderByJWT, dataFinder AllOwnerDataFinder, log *logger.Logger) *ItemsListHandler {
 	return &ItemsListHandler{
-		accessService: accessService,
-		manager:       manager,
-		log:           log,
+		userFinderByJWT: userFinderByJWT,
+		dataFinder:      dataFinder,
+		log:             log,
 	}
+}
+
+// UserFinderByJWT поиск пользователя в JWT
+type UserFinderByJWT interface {
+	GetUserUUIDByJWTToken(ctx context.Context) (string, error)
+}
+
+// AllOwnerDataFinder данные пользователя
+type AllOwnerDataFinder interface {
+	AllOwnerData(ctx context.Context, userUUID string, offset int, limit int) ([]models.OwnerData, error)
 }
 
 type itemDataResponse struct {
@@ -43,7 +53,7 @@ func (hr itemDataResponse) Render(res http.ResponseWriter, req *http.Request) er
 
 func (ih *ItemsListHandler) HandleItemsList(res http.ResponseWriter, req *http.Request) {
 
-	userUUID, err := ih.accessService.GetUserUUIDByJWTToken(req.Context())
+	userUUID, err := ih.userFinderByJWT.GetUserUUIDByJWTToken(req.Context())
 	if err != nil {
 		ih.log.Error(err)
 		_ = render.Render(res, req, ErrBadRequest)
@@ -60,7 +70,7 @@ func (ih *ItemsListHandler) HandleItemsList(res http.ResponseWriter, req *http.R
 	}
 	o, _ := strconv.Atoi(offset)
 	l, _ := strconv.Atoi(limit)
-	dataList, err := ih.manager.Owner().AllOwnerData(req.Context(), userUUID, o, l)
+	dataList, err := ih.dataFinder.AllOwnerData(req.Context(), userUUID, o, l)
 	if err != nil {
 		ih.log.Error(err)
 		_ = render.Render(res, req, ErrInternalServerError)

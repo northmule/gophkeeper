@@ -9,23 +9,21 @@ import (
 	"github.com/northmule/gophkeeper/internal/common/models"
 	"github.com/northmule/gophkeeper/internal/common/util"
 	"github.com/northmule/gophkeeper/internal/server/logger"
-	"github.com/northmule/gophkeeper/internal/server/repository"
-	"github.com/northmule/gophkeeper/internal/server/services/access"
 )
 
 // DecryptDataHandler Расшифровывает входящий запрос
 type DecryptDataHandler struct {
-	log           *logger.Logger
-	accessService access.AccessService
-	manager       repository.Repository
+	log             *logger.Logger
+	userFinderByJWT UserFinderByJWT
+	userFinder      UserFinder
 }
 
 // NewDecryptDataHandler конструктор
-func NewDecryptDataHandler(accessService access.AccessService, manager repository.Repository, log *logger.Logger) *DecryptDataHandler {
+func NewDecryptDataHandler(userFinderByJWT UserFinderByJWT, userFinder UserFinder, log *logger.Logger) *DecryptDataHandler {
 	return &DecryptDataHandler{
-		log:           log,
-		accessService: accessService,
-		manager:       manager,
+		log:             log,
+		userFinderByJWT: userFinderByJWT,
+		userFinder:      userFinder,
 	}
 }
 
@@ -39,14 +37,14 @@ func (h *DecryptDataHandler) HandleDecryptData(next http.Handler) http.Handler {
 			bodyBytesDecrypt []byte
 		)
 
-		userUUID, err = h.accessService.GetUserUUIDByJWTToken(req.Context())
+		userUUID, err = h.userFinderByJWT.GetUserUUIDByJWTToken(req.Context())
 		if err != nil {
 			h.log.Error(err)
 			_ = render.Render(res, req, ErrBadRequest)
 			return
 		}
 
-		user, err = h.manager.User().FindOneByUUID(req.Context(), userUUID)
+		user, err = h.userFinder.FindOneByUUID(req.Context(), userUUID)
 		if err != nil {
 			h.log.Error(err)
 			_ = render.Render(res, req, ErrInternalServerError)
@@ -100,14 +98,14 @@ func (h *DecryptDataHandler) HandleEncryptData(next http.Handler) http.Handler {
 
 		next.ServeHTTP(mixedResponseWriter, req)
 
-		userUUID, err = h.accessService.GetUserUUIDByJWTToken(req.Context())
+		userUUID, err = h.userFinderByJWT.GetUserUUIDByJWTToken(req.Context())
 		if err != nil {
 			h.log.Error(err)
 			_ = render.Render(res, req, ErrBadRequest)
 			return
 		}
 
-		user, err = h.manager.User().FindOneByUUID(req.Context(), userUUID)
+		user, err = h.userFinder.FindOneByUUID(req.Context(), userUUID)
 		if err != nil {
 			h.log.Error(err)
 			_ = render.Render(res, req, ErrInternalServerError)

@@ -14,28 +14,37 @@ import (
 	"github.com/northmule/gophkeeper/internal/common/models"
 	"github.com/northmule/gophkeeper/internal/server/config"
 	"github.com/northmule/gophkeeper/internal/server/logger"
-	"github.com/northmule/gophkeeper/internal/server/repository"
-	"github.com/northmule/gophkeeper/internal/server/services/access"
+	"golang.org/x/net/context"
 )
 
 // FileDataHandler обработка запросо на сохранение файлов
 type FileDataHandler struct {
-	log           *logger.Logger
-	accessService access.AccessService
-	manager       repository.Repository
-
-	cfg *config.Config
+	log             *logger.Logger
+	userFinderByJWT UserFinderByJWT
+	fileDataCRUD    FileDataCRUD
+	ownerCRUD       OwnerCRUD
+	metaDataCRUD    MetaDataCRUD
+	cfg             *config.Config
 }
 
 // NewFileDataHandler конструктор
-func NewFileDataHandler(accessService access.AccessService, manager repository.Repository, cfg *config.Config, log *logger.Logger) *FileDataHandler {
+func NewFileDataHandler(userFinderByJWT UserFinderByJWT, fileDataCRUD FileDataCRUD, ownerCRUD OwnerCRUD, metaDataCRUD MetaDataCRUD, cfg *config.Config, log *logger.Logger) *FileDataHandler {
 
 	return &FileDataHandler{
-		accessService: accessService,
-		manager:       manager,
-		log:           log,
-		cfg:           cfg,
+		userFinderByJWT: userFinderByJWT,
+		log:             log,
+		fileDataCRUD:    fileDataCRUD,
+		ownerCRUD:       ownerCRUD,
+		metaDataCRUD:    metaDataCRUD,
+		cfg:             cfg,
 	}
+}
+
+// FileDataCRUD операции над данными
+type FileDataCRUD interface {
+	FindOneByUUID(ctx context.Context, uuid string) (*models.FileData, error)
+	Add(ctx context.Context, data *models.FileData) (int64, error)
+	Update(ctx context.Context, data *models.FileData) error
 }
 
 // Запрос инициализации загрузки файла (основная информация о файле)
@@ -74,7 +83,7 @@ func (h *FileDataHandler) HandleInit(res http.ResponseWriter, req *http.Request)
 		_ = render.Render(res, req, ErrBadRequest)
 		return
 	}
-	userUUID, err = h.accessService.GetUserUUIDByJWTToken(req.Context())
+	userUUID, err = h.userFinderByJWT.GetUserUUIDByJWTToken(req.Context())
 	if err != nil {
 		h.log.Error(err)
 		_ = render.Render(res, req, ErrBadRequest)
@@ -84,7 +93,7 @@ func (h *FileDataHandler) HandleInit(res http.ResponseWriter, req *http.Request)
 	if request.UUID != "" { // редактирование
 		dataUUID = request.UUID
 		// владелец данных
-		owner, err = h.manager.Owner().FindOneByUserUUIDAndDataUUIDAndDataType(req.Context(), userUUID, dataUUID, data_type.BinaryType)
+		owner, err = h.ownerCRUD.FindOneByUserUUIDAndDataUUIDAndDataType(req.Context(), userUUID, dataUUID, data_type.BinaryType)
 		if err != nil {
 			h.log.Error(err)
 			_ = render.Render(res, req, ErrBadRequest)
@@ -95,7 +104,7 @@ func (h *FileDataHandler) HandleInit(res http.ResponseWriter, req *http.Request)
 			_ = render.Render(res, req, ErrNotFound)
 			return
 		}
-		fileData, err = h.manager.FileData().FindOneByUUID(req.Context(), dataUUID)
+		fileData, err = h.fileDataCRUD.FindOneByUUID(req.Context(), dataUUID)
 		if err != nil {
 			h.log.Error(err)
 			_ = render.Render(res, req, ErrBadRequest)
@@ -113,7 +122,7 @@ func (h *FileDataHandler) HandleInit(res http.ResponseWriter, req *http.Request)
 		fileData.Extension = request.Extension
 		fileData.MimeType = request.MimeType
 
-		err = h.manager.FileData().Update(req.Context(), fileData)
+		err = h.fileDataCRUD.Update(req.Context(), fileData)
 		if err != nil {
 			h.log.Error(err)
 			_ = render.Render(res, req, ErrInternalServerError)
@@ -132,7 +141,7 @@ func (h *FileDataHandler) HandleInit(res http.ResponseWriter, req *http.Request)
 			}
 		}
 		// перезапись мета
-		err = h.manager.MetaData().ReplaceMetaByDataUUID(req.Context(), dataUUID, newMeta)
+		err = h.metaDataCRUD.ReplaceMetaByDataUUID(req.Context(), dataUUID, newMeta)
 		if err != nil {
 			h.log.Error(err)
 			_ = render.Render(res, req, ErrInternalServerError)
@@ -160,7 +169,7 @@ func (h *FileDataHandler) HandleInit(res http.ResponseWriter, req *http.Request)
 		fileData.Storage = "local://" // todo в настройки (сейчас не используется)
 		fileData.Uploaded = false
 
-		_, err = h.manager.FileData().Add(req.Context(), fileData)
+		_, err = h.fileDataCRUD.Add(req.Context(), fileData)
 		if err != nil {
 			h.log.Error(err)
 			_ = render.Render(res, req, ErrInternalServerError)
@@ -173,7 +182,7 @@ func (h *FileDataHandler) HandleInit(res http.ResponseWriter, req *http.Request)
 		owner.DataType = data_type.BinaryType
 		owner.DataUUID = dataUUID
 
-		_, err = h.manager.Owner().Add(req.Context(), owner)
+		_, err = h.ownerCRUD.Add(req.Context(), owner)
 		if err != nil {
 			h.log.Error(err)
 			_ = render.Render(res, req, ErrInternalServerError)
@@ -187,7 +196,7 @@ func (h *FileDataHandler) HandleInit(res http.ResponseWriter, req *http.Request)
 				metaData.MetaName = key
 				metaData.MetaValue.Value = value
 				metaData.DataUUID = dataUUID
-				_, err = h.manager.MetaData().Add(req.Context(), metaData)
+				_, err = h.metaDataCRUD.Add(req.Context(), metaData)
 				if err != nil {
 					h.log.Error(err)
 					_ = render.Render(res, req, ErrInternalServerError)
@@ -220,7 +229,7 @@ func (h *FileDataHandler) HandleAction(res http.ResponseWriter, req *http.Reques
 	dataUUID = chi.URLParam(req, "file_uuid")
 	pathPart = chi.URLParam(req, "part")
 
-	userUUID, err = h.accessService.GetUserUUIDByJWTToken(req.Context())
+	userUUID, err = h.userFinderByJWT.GetUserUUIDByJWTToken(req.Context())
 	if err != nil {
 		h.log.Error(err)
 		_ = render.Render(res, req, ErrBadRequest)
@@ -228,7 +237,7 @@ func (h *FileDataHandler) HandleAction(res http.ResponseWriter, req *http.Reques
 	}
 
 	// владелец данных
-	owner, err = h.manager.Owner().FindOneByUserUUIDAndDataUUIDAndDataType(req.Context(), userUUID, dataUUID, data_type.BinaryType)
+	owner, err = h.ownerCRUD.FindOneByUserUUIDAndDataUUIDAndDataType(req.Context(), userUUID, dataUUID, data_type.BinaryType)
 	if err != nil {
 		h.log.Error(err)
 		_ = render.Render(res, req, ErrBadRequest)
@@ -265,7 +274,7 @@ func (h *FileDataHandler) HandleGetAction(res http.ResponseWriter, req *http.Req
 	dataUUID = chi.URLParam(req, "file_uuid")
 	pathPart = chi.URLParam(req, "part")
 
-	userUUID, err = h.accessService.GetUserUUIDByJWTToken(req.Context())
+	userUUID, err = h.userFinderByJWT.GetUserUUIDByJWTToken(req.Context())
 	if err != nil {
 		h.log.Error(err)
 		_ = render.Render(res, req, ErrBadRequest)
@@ -273,7 +282,7 @@ func (h *FileDataHandler) HandleGetAction(res http.ResponseWriter, req *http.Req
 	}
 
 	// владелец данных
-	owner, err = h.manager.Owner().FindOneByUserUUIDAndDataUUIDAndDataType(req.Context(), userUUID, dataUUID, data_type.BinaryType)
+	owner, err = h.ownerCRUD.FindOneByUserUUIDAndDataUUIDAndDataType(req.Context(), userUUID, dataUUID, data_type.BinaryType)
 	if err != nil {
 		h.log.Error(err)
 		_ = render.Render(res, req, ErrBadRequest)
@@ -302,7 +311,7 @@ func (h *FileDataHandler) downLoadFile(res http.ResponseWriter, req *http.Reques
 		fileData *models.FileData
 		file     *os.File
 	)
-	fileData, err = h.manager.FileData().FindOneByUUID(req.Context(), dataUUID)
+	fileData, err = h.fileDataCRUD.FindOneByUUID(req.Context(), dataUUID)
 	if err != nil {
 		h.log.Error(err)
 		return ErrInternalServerError
@@ -342,7 +351,7 @@ func (h *FileDataHandler) loadFile(req *http.Request, dataUUID string) *ErrRespo
 	}
 	defer requestFile.Close()
 
-	fileData, err = h.manager.FileData().FindOneByUUID(req.Context(), dataUUID)
+	fileData, err = h.fileDataCRUD.FindOneByUUID(req.Context(), dataUUID)
 
 	// Всё сразу todo по частям и с part
 	filename := fileData.Path + "/" + fileData.FileName
@@ -364,7 +373,7 @@ func (h *FileDataHandler) loadFile(req *http.Request, dataUUID string) *ErrRespo
 	}
 	// Файл загружен
 	fileData.Uploaded = true
-	err = h.manager.FileData().Update(req.Context(), fileData)
+	err = h.fileDataCRUD.Update(req.Context(), fileData)
 	if err != nil {
 		h.log.Error(err)
 		return ErrInternalServerError

@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"net/http"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth/v5"
@@ -9,23 +11,28 @@ import (
 	"github.com/northmule/gophkeeper/internal/server/logger"
 	"github.com/northmule/gophkeeper/internal/server/repository"
 	service "github.com/northmule/gophkeeper/internal/server/services"
-	"github.com/northmule/gophkeeper/internal/server/services/access"
 	"github.com/northmule/gophkeeper/internal/server/storage"
+	"golang.org/x/net/context"
 )
 
 type AppRoutes struct {
-	manager       repository.Repository
 	storage       storage.DBQuery
 	session       storage.SessionManager
 	log           *logger.Logger
 	cfg           *config.Config
-	accessService access.AccessService
+	accessService AccessService
 	cryptService  service.CryptService
+
+	userRepository     *repository.UserRepository
+	cardDataRepository *repository.CardDataRepository
+	fileDataRepository *repository.FileDataRepository
+	metaDataRepository *repository.MetaDataRepository
+	ownerRepository    *repository.OwnerRepository
+	textDataRepository *repository.TextDataRepository
 }
 
-func NewAppRoutes(repositoryManager repository.Repository, storage storage.DBQuery, session storage.SessionManager, log *logger.Logger, cfg *config.Config, accessService access.AccessService, cryptService service.CryptService) AppRoutes {
+func NewAppRoutes(storage storage.DBQuery, session storage.SessionManager, log *logger.Logger, cfg *config.Config, accessService AccessService, cryptService service.CryptService) *AppRoutes {
 	instance := AppRoutes{
-		manager:       repositoryManager,
 		storage:       storage,
 		session:       session,
 		log:           log,
@@ -33,7 +40,15 @@ func NewAppRoutes(repositoryManager repository.Repository, storage storage.DBQue
 		accessService: accessService,
 		cryptService:  cryptService,
 	}
-	return instance
+	return &instance
+}
+
+// AccessService серис доступа
+type AccessService interface {
+	PasswordHash(password string) (string, error)
+	FillJWTToken() *jwtauth.JWTAuth
+	GetUserUUIDByJWTToken(ctx context.Context) (string, error)
+	FindTokenByRequest(r *http.Request) string
 }
 
 // DefiningAppRoutes маршруты приложения
@@ -41,16 +56,16 @@ func (ar *AppRoutes) DefiningAppRoutes() chi.Router {
 
 	// Обработчики
 	healthHandler := NewHealthHandler(ar.log)
-	registrationHandler := NewRegistrationHandler(ar.manager, ar.session, ar.accessService, ar.log)
+	registrationHandler := NewRegistrationHandler(ar.userRepository, ar.userRepository, ar.session, ar.accessService, ar.log)
 	transactionHandler := NewTransactionHandler(ar.storage, ar.log)
 
-	itemsListHandler := NewItemsListHandler(ar.accessService, ar.manager, ar.log)
-	cardDataHandler := NewCardDataHandler(ar.accessService, ar.manager, ar.log)
-	textDataHandler := NewTextDataHandler(ar.accessService, ar.manager, ar.log)
-	fileDataHandler := NewFileDataHandler(ar.accessService, ar.manager, ar.cfg, ar.log)
-	itemDataHandler := NewItemDataHandler(ar.accessService, ar.manager, ar.log)
-	keysDataHandler := NewKeysDataHandler(ar.accessService, ar.cryptService, ar.manager, ar.cfg, ar.log)
-	decryptDataHandler := NewDecryptDataHandler(ar.accessService, ar.manager, ar.log)
+	itemsListHandler := NewItemsListHandler(ar.accessService, ar.ownerRepository, ar.log)
+	cardDataHandler := NewCardDataHandler(ar.accessService, ar.ownerRepository, ar.cardDataRepository, ar.metaDataRepository, ar.log)
+	textDataHandler := NewTextDataHandler(ar.accessService, ar.ownerRepository, ar.metaDataRepository, ar.textDataRepository, ar.log)
+	fileDataHandler := NewFileDataHandler(ar.accessService, ar.fileDataRepository, ar.ownerRepository, ar.metaDataRepository, ar.cfg, ar.log)
+	itemDataHandler := NewItemDataHandler(ar.accessService, ar.cardDataRepository, ar.metaDataRepository, ar.fileDataRepository, ar.textDataRepository, ar.ownerRepository, ar.log)
+	keysDataHandler := NewKeysDataHandler(ar.accessService, ar.cryptService, ar.userRepository, ar.userRepository, ar.cfg, ar.log)
+	decryptDataHandler := NewDecryptDataHandler(ar.accessService, ar.userRepository, ar.log)
 
 	r := chi.NewRouter()
 
@@ -140,4 +155,40 @@ func (ar *AppRoutes) DefiningAppRoutes() chi.Router {
 	})
 
 	return r
+}
+
+// SetTextDataRepository установка репозитария
+func (ar *AppRoutes) SetTextDataRepository(textDataRepository *repository.TextDataRepository) *AppRoutes {
+	ar.textDataRepository = textDataRepository
+	return ar
+}
+
+// SetOwnerRepository установка репозитария
+func (ar *AppRoutes) SetOwnerRepository(ownerRepository *repository.OwnerRepository) *AppRoutes {
+	ar.ownerRepository = ownerRepository
+	return ar
+}
+
+// SetMetaDataRepository установка репозитария
+func (ar *AppRoutes) SetMetaDataRepository(metaDataRepository *repository.MetaDataRepository) *AppRoutes {
+	ar.metaDataRepository = metaDataRepository
+	return ar
+}
+
+// SetFileDataRepository установка репозитария
+func (ar *AppRoutes) SetFileDataRepository(fileDataRepository *repository.FileDataRepository) *AppRoutes {
+	ar.fileDataRepository = fileDataRepository
+	return ar
+}
+
+// SetCardDataRepository установка репозитария
+func (ar *AppRoutes) SetCardDataRepository(cardDataRepository *repository.CardDataRepository) *AppRoutes {
+	ar.cardDataRepository = cardDataRepository
+	return ar
+}
+
+// SetUserRepository установка репозитария
+func (ar *AppRoutes) SetUserRepository(userRepository *repository.UserRepository) *AppRoutes {
+	ar.userRepository = userRepository
+	return ar
 }

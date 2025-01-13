@@ -10,23 +10,29 @@ import (
 	"github.com/northmule/gophkeeper/internal/common/model_data"
 	"github.com/northmule/gophkeeper/internal/common/models"
 	"github.com/northmule/gophkeeper/internal/server/logger"
-	"github.com/northmule/gophkeeper/internal/server/repository"
-	"github.com/northmule/gophkeeper/internal/server/services/access"
 )
 
 // ItemDataHandler обрабатывает запрос данных по uuid
 type ItemDataHandler struct {
-	log           *logger.Logger
-	accessService access.AccessService
-	manager       repository.Repository
+	log             *logger.Logger
+	userFinderByJWT UserFinderByJWT
+	ownerCRUD       OwnerCRUD
+	cardDataCRUD    CardDataCRUD
+	metaDataCRUD    MetaDataCRUD
+	fileDataCRUD    FileDataCRUD
+	textDataCRUD    TextDataCRUD
 }
 
 // NewItemDataHandler конструктор
-func NewItemDataHandler(accessService access.AccessService, manager repository.Repository, log *logger.Logger) *ItemDataHandler {
+func NewItemDataHandler(userFinderByJWT UserFinderByJWT, cardDataCRUD CardDataCRUD, metaDataCRUD MetaDataCRUD, fileDataCRUD FileDataCRUD, textDataCRUD TextDataCRUD, ownerCRUD OwnerCRUD, log *logger.Logger) *ItemDataHandler {
 	return &ItemDataHandler{
-		accessService: accessService,
-		manager:       manager,
-		log:           log,
+		userFinderByJWT: userFinderByJWT,
+		cardDataCRUD:    cardDataCRUD,
+		metaDataCRUD:    metaDataCRUD,
+		fileDataCRUD:    fileDataCRUD,
+		textDataCRUD:    textDataCRUD,
+		ownerCRUD:       ownerCRUD,
+		log:             log,
 	}
 }
 
@@ -55,14 +61,14 @@ func (h *ItemDataHandler) HandleItem(res http.ResponseWriter, req *http.Request)
 		return
 	}
 
-	userUUID, err = h.accessService.GetUserUUIDByJWTToken(req.Context())
+	userUUID, err = h.userFinderByJWT.GetUserUUIDByJWTToken(req.Context())
 	if err != nil {
 		h.log.Error(err)
 		_ = render.Render(res, req, ErrBadRequest)
 		return
 	}
 
-	owner, err = h.manager.Owner().FindOneByUserUUIDAndDataUUID(req.Context(), userUUID, dataUUID)
+	owner, err = h.ownerCRUD.FindOneByUserUUIDAndDataUUID(req.Context(), userUUID, dataUUID)
 	if err != nil {
 		h.log.Error(err)
 		_ = render.Render(res, req, ErrBadRequest)
@@ -81,7 +87,7 @@ func (h *ItemDataHandler) HandleItem(res http.ResponseWriter, req *http.Request)
 		metaData     []models.MetaData
 		dataResponse *dataByUUIDResponse
 	)
-	metaData, err = h.manager.MetaData().FindOneByUUID(req.Context(), owner.DataUUID)
+	metaData, err = h.metaDataCRUD.FindOneByUUID(req.Context(), owner.DataUUID)
 	if err != nil {
 		h.log.Error(err)
 		_ = render.Render(res, req, ErrInternalServerError)
@@ -90,7 +96,7 @@ func (h *ItemDataHandler) HandleItem(res http.ResponseWriter, req *http.Request)
 	dataResponse = new(dataByUUIDResponse)
 	// Данные карт
 	if owner.DataType == data_type.CardType {
-		cardData, err = h.manager.CardData().FindOneByUUID(req.Context(), owner.DataUUID)
+		cardData, err = h.cardDataCRUD.FindOneByUUID(req.Context(), owner.DataUUID)
 		if err != nil {
 			h.log.Error(err)
 			_ = render.Render(res, req, ErrInternalServerError)
@@ -119,7 +125,7 @@ func (h *ItemDataHandler) HandleItem(res http.ResponseWriter, req *http.Request)
 	}
 	// Текстовые данные
 	if owner.DataType == data_type.TextType {
-		textData, err = h.manager.TextData().FindOneByUUID(req.Context(), owner.DataUUID)
+		textData, err = h.textDataCRUD.FindOneByUUID(req.Context(), owner.DataUUID)
 		if err != nil {
 			h.log.Error(err)
 			_ = render.Render(res, req, ErrInternalServerError)
@@ -140,7 +146,7 @@ func (h *ItemDataHandler) HandleItem(res http.ResponseWriter, req *http.Request)
 	}
 	// Бинарные данные
 	if owner.DataType == data_type.BinaryType {
-		fileData, err = h.manager.FileData().FindOneByUUID(req.Context(), owner.DataUUID)
+		fileData, err = h.fileDataCRUD.FindOneByUUID(req.Context(), owner.DataUUID)
 		if err != nil {
 			h.log.Error(err)
 			_ = render.Render(res, req, ErrInternalServerError)
