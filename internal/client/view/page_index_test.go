@@ -12,7 +12,7 @@ import (
 )
 
 func TestPageIndex_Init(t *testing.T) {
-	mockCfg := config.NewConfig()
+	mockCfg, _ := config.NewConfig()
 	mockCfg.Value().PathPublicKeyServer = path.Join("testpath")
 	mockCfg.Value().PathKeys = path.Join("testpath")
 	log, _ := logger.NewLogger("info")
@@ -25,7 +25,7 @@ func TestPageIndex_Init(t *testing.T) {
 }
 
 func TestPageIndex_Update(t *testing.T) {
-	mockCfg := config.NewConfig()
+	mockCfg, _ := config.NewConfig()
 	mockCfg.Value().PathPublicKeyServer = path.Join("testpath")
 	mockCfg.Value().PathKeys = path.Join("testpath")
 	log, _ := logger.NewLogger("info")
@@ -77,7 +77,7 @@ func TestPageIndex_Update(t *testing.T) {
 
 func TestPageIndex_View(t *testing.T) {
 
-	mockCfg := config.NewConfig()
+	mockCfg, _ := config.NewConfig()
 	mockCfg.Value().PathPublicKeyServer = path.Join("testpath")
 	mockCfg.Value().PathKeys = path.Join("testpath")
 	log, _ := logger.NewLogger("info")

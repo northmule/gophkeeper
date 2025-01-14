@@ -54,12 +54,11 @@ OverwriteKeys: true
 	defer os.Remove(invalidConfigPath)
 	defer os.Remove(missingFieldConfigPath)
 
-	cfg := NewConfig()
-	cfg.v.SetConfigFile(validConfigPath)
-	err = cfg.Init()
+	cfg, err := NewConfig()
 	if err != nil {
 		t.Errorf("Init failed with valid config: %v", err)
 	}
+	cfg.v.SetConfigFile(validConfigPath)
 
 	value := cfg.Value()
 
@@ -79,21 +78,20 @@ OverwriteKeys: true
 		t.Fatalf("Failed to write invalid config file: %v", err)
 	}
 
-	cfg2 := NewConfig()
-	cfg2.v.SetConfigFile(invalidConfigPath)
-	err = cfg2.Init()
+	cfg2, err := NewConfig()
 	if err != nil {
 		t.Errorf(err.Error())
 	}
+	cfg2.v.SetConfigFile(invalidConfigPath)
 
 	if err := os.WriteFile(missingFieldConfigPath, []byte(missingFieldConfig), 0644); err != nil {
 		t.Fatalf("Failed to write missing field config file: %v", err)
 	}
 
-	cfg3 := NewConfig()
-	cfg3.v.SetConfigFile(missingFieldConfigPath)
-	err = cfg3.Init()
+	cfg3, err := NewConfig()
 	if err != nil {
 		t.Errorf(err.Error())
 	}
+	cfg3.v.SetConfigFile(missingFieldConfigPath)
+
 }

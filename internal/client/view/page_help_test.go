@@ -12,7 +12,7 @@ import (
 )
 
 func TestPageHelp_Init(t *testing.T) {
-	mockCfg := config.NewConfig()
+	mockCfg, _ := config.NewConfig()
 	mockCfg.Value().PathPublicKeyServer = path.Join("testpath")
 	mockCfg.Value().PathKeys = path.Join("testpath")
 	log, _ := logger.NewLogger("info")
@@ -26,7 +26,7 @@ func TestPageHelp_Init(t *testing.T) {
 }
 
 func TestPageHelp_Update(t *testing.T) {
-	mockCfg := config.NewConfig()
+	mockCfg, _ := config.NewConfig()
 	mockCfg.Value().PathPublicKeyServer = path.Join("testpath")
 	mockCfg.Value().PathKeys = path.Join("testpath")
 	log, _ := logger.NewLogger("info")
@@ -48,7 +48,7 @@ func TestPageHelp_Update(t *testing.T) {
 }
 
 func TestPageHelp_View(t *testing.T) {
-	mockCfg := config.NewConfig()
+	mockCfg, _ := config.NewConfig()
 	mockCfg.Value().PathPublicKeyServer = path.Join("testpath")
 	mockCfg.Value().PathKeys = path.Join("testpath")
 	log, _ := logger.NewLogger("info")

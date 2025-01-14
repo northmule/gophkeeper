@@ -17,7 +17,7 @@ import (
 )
 
 func TestPageAuthentication_Init(t *testing.T) {
-	mockCfg := config.NewConfig()
+	mockCfg, _ := config.NewConfig()
 	mockCfg.Value().PathPublicKeyServer = path.Join("testpath")
 	mockCfg.Value().PathKeys = path.Join("testpath")
 	log, _ := logger.NewLogger("info")
@@ -43,7 +43,7 @@ func TestPageAuthentication_Update(t *testing.T) {
 		{"invalid key", tea.KeyMsg{Type: tea.KeyCtrlC}, pageAction{Choice: 0}},
 	}
 
-	mockCfg := config.NewConfig()
+	mockCfg, _ := config.NewConfig()
 	mockCfg.Value().PathPublicKeyServer = path.Join("testpath")
 	mockCfg.Value().PathKeys = path.Join("testpath")
 	log, _ := logger.NewLogger("info")
@@ -195,7 +195,7 @@ func TestPageAuthentication_Update(t *testing.T) {
 }
 
 func TestPageAuthentication_View(t *testing.T) {
-	mockCfg := config.NewConfig()
+	mockCfg, _ := config.NewConfig()
 	mockCfg.Value().PathPublicKeyServer = path.Join("testpath")
 	mockCfg.Value().PathKeys = path.Join("testpath")
 	log, _ := logger.NewLogger("info")

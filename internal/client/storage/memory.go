@@ -19,17 +19,6 @@ type MemoryStorage struct {
 	mx sync.RWMutex
 }
 
-// Storage интерфейс локального хранилища
-type Storage interface {
-	SetToken(token string)
-	Token() string
-	ResetToken()
-	AddCardDataList(data models.CardData) error
-	AddMetaDataList(data models.MetaData) error
-	AddTextData(data models.TextData) error
-	AddFileData(data models.FileData) error
-}
-
 // NewMemoryStorage конструктор
 func NewMemoryStorage() *MemoryStorage {
 	instance := new(MemoryStorage)

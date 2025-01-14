@@ -12,7 +12,7 @@ import (
 )
 
 func TestPageFileSelect_Init(t *testing.T) {
-	mockCfg := config.NewConfig()
+	mockCfg, _ := config.NewConfig()
 	mockCfg.Value().PathPublicKeyServer = path.Join("testpath")
 	mockCfg.Value().PathKeys = path.Join("testpath")
 	log, _ := logger.NewLogger("info")
@@ -28,7 +28,7 @@ func TestPageFileSelect_Init(t *testing.T) {
 }
 
 func TestPageFileSelect_View(t *testing.T) {
-	mockCfg := config.NewConfig()
+	mockCfg, _ := config.NewConfig()
 	mockCfg.Value().PathPublicKeyServer = path.Join("testpath")
 	mockCfg.Value().PathKeys = path.Join("testpath")
 	log, _ := logger.NewLogger("info")

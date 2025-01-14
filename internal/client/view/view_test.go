@@ -18,7 +18,7 @@ import (
 )
 
 func TestNewClientView(t *testing.T) {
-	cfg := config.NewConfig()
+	cfg, _ := config.NewConfig()
 	log, _ := logger.NewLogger("info")
 
 	clientView := NewClientView(cfg, log)
@@ -28,7 +28,7 @@ func TestNewClientView(t *testing.T) {
 }
 
 func TestInitMain(t *testing.T) {
-	mockCfg := config.NewConfig()
+	mockCfg, _ := config.NewConfig()
 	mockCfg.Value().PathPublicKeyServer = "testpath"
 	mockCfg.Value().PathKeys = "testpath"
 	log, _ := logger.NewLogger("info")

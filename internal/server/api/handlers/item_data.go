@@ -94,8 +94,10 @@ func (h *ItemDataHandler) HandleItem(res http.ResponseWriter, req *http.Request)
 		return
 	}
 	dataResponse = new(dataByUUIDResponse)
-	// Данные карт
-	if owner.DataType == data_type.CardType {
+
+	switch owner.DataType {
+
+	case data_type.CardType: // Данные карт
 		cardData, err = h.cardDataCRUD.FindOneByUUID(req.Context(), owner.DataUUID)
 		if err != nil {
 			h.log.Error(err)
@@ -122,9 +124,7 @@ func (h *ItemDataHandler) HandleItem(res http.ResponseWriter, req *http.Request)
 			dataResponse.CardData.Meta = existMeta
 		}
 
-	}
-	// Текстовые данные
-	if owner.DataType == data_type.TextType {
+	case data_type.TextType: // Текстовые данные
 		textData, err = h.textDataCRUD.FindOneByUUID(req.Context(), owner.DataUUID)
 		if err != nil {
 			h.log.Error(err)
@@ -143,9 +143,7 @@ func (h *ItemDataHandler) HandleItem(res http.ResponseWriter, req *http.Request)
 			}
 			dataResponse.TextData.Meta = existMeta
 		}
-	}
-	// Бинарные данные
-	if owner.DataType == data_type.BinaryType {
+	case data_type.BinaryType: // Бинарные данные
 		fileData, err = h.fileDataCRUD.FindOneByUUID(req.Context(), owner.DataUUID)
 		if err != nil {
 			h.log.Error(err)

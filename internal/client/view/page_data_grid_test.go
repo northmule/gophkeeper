@@ -134,7 +134,7 @@ func (m *MockCardDataController) Send(token string, requestData *model_data.Card
 }
 
 func TestPageDataGrid_Init(t *testing.T) {
-	mockCfg := config.NewConfig()
+	mockCfg, _ := config.NewConfig()
 	mockCfg.Value().PathPublicKeyServer = path.Join("testpath")
 	mockCfg.Value().PathKeys = path.Join("testpath")
 	log, _ := logger.NewLogger("info")
@@ -173,7 +173,7 @@ func TestNewPageDataGrid(t *testing.T) {
 }
 
 func TestPageDataGrid_View(t *testing.T) {
-	mockCfg := config.NewConfig()
+	mockCfg, _ := config.NewConfig()
 	mockCfg.Value().PathPublicKeyServer = path.Join("testpath")
 	mockCfg.Value().PathKeys = path.Join("testpath")
 	log, _ := logger.NewLogger("info")

@@ -66,15 +66,15 @@ func (c *CardData) Send(token string, requestData *model_data.CardDataRequest) (
 	}
 	defer response.Body.Close()
 
-	if response.StatusCode == http.StatusUnauthorized {
-		return nil, fmt.Errorf("вы не авторизованы")
-	}
-
-	if response.StatusCode == http.StatusBadRequest {
-		return nil, fmt.Errorf("ошибка в запросе")
-	}
-
 	if response.StatusCode != http.StatusOK {
+		if response.StatusCode == http.StatusUnauthorized {
+			return nil, fmt.Errorf("вы не авторизованы")
+		}
+
+		if response.StatusCode == http.StatusBadRequest {
+			return nil, fmt.Errorf("ошибка в запросе")
+		}
+
 		return nil, fmt.Errorf("не известная ошибка")
 	}
 

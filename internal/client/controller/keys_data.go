@@ -65,10 +65,11 @@ func (c *KeysData) UploadClientPublicKey(token string) error {
 	if err != nil {
 		return err
 	}
-	if response.StatusCode == http.StatusUnauthorized {
-		return fmt.Errorf("вы не авторизованы")
-	}
+
 	if response.StatusCode != http.StatusOK {
+		if response.StatusCode == http.StatusUnauthorized {
+			return fmt.Errorf("вы не авторизованы")
+		}
 		return fmt.Errorf("не известная ошибка")
 	}
 	defer response.Body.Close()

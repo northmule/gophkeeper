@@ -65,11 +65,11 @@ func (c *Authentication) Send(login string, password string) (*AuthenticationRes
 	}
 	defer response.Body.Close()
 
-	if response.StatusCode == http.StatusUnauthorized {
-		return nil, fmt.Errorf("не верная пара логин/пароль")
-	}
-
 	if response.StatusCode != http.StatusOK {
+		if response.StatusCode == http.StatusUnauthorized {
+			return nil, fmt.Errorf("не верная пара логин/пароль")
+		}
+
 		return nil, fmt.Errorf("не известная ошибка")
 	}
 

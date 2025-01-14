@@ -19,7 +19,7 @@ import (
 )
 
 func TestPageCardData_Init(t *testing.T) {
-	mockCfg := config.NewConfig()
+	mockCfg, _ := config.NewConfig()
 	mockCfg.Value().PathPublicKeyServer = path.Join("testpath")
 	mockCfg.Value().PathKeys = path.Join("testpath")
 	log, _ := logger.NewLogger("info")
@@ -42,7 +42,7 @@ func TestPageCardData_Update(t *testing.T) {
 		{"up key", tea.KeyMsg{Type: tea.KeyUp}, pageCardData{Choice: 0}},
 		{"invalid key", tea.KeyMsg{Type: tea.KeyCtrlC}, pageCardData{Choice: 0}},
 	}
-	mockCfg := config.NewConfig()
+	mockCfg, _ := config.NewConfig()
 	mockCfg.Value().PathPublicKeyServer = path.Join("testpath")
 	mockCfg.Value().PathKeys = path.Join("testpath")
 	log, _ := logger.NewLogger("info")
@@ -151,7 +151,7 @@ func TestPageCardData_Update(t *testing.T) {
 }
 
 func TestPageCardData_View(t *testing.T) {
-	mockCfg := config.NewConfig()
+	mockCfg, _ := config.NewConfig()
 	mockCfg.Value().PathPublicKeyServer = path.Join("testpath")
 	mockCfg.Value().PathKeys = path.Join("testpath")
 	log, _ := logger.NewLogger("info")

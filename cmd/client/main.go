@@ -13,7 +13,10 @@ import (
 	"context"
 
 	"github.com/northmule/gophkeeper/internal/client/config"
+	"github.com/northmule/gophkeeper/internal/client/controller"
 	"github.com/northmule/gophkeeper/internal/client/logger"
+	"github.com/northmule/gophkeeper/internal/client/service"
+	"github.com/northmule/gophkeeper/internal/client/storage"
 	appview "github.com/northmule/gophkeeper/internal/client/view"
 	"github.com/northmule/gophkeeper/internal/common/keys"
 	"github.com/northmule/gophkeeper/internal/common/keys/signers"
@@ -40,8 +43,7 @@ func main() {
 func run(ctx context.Context) error {
 	var err error
 
-	cfg := config.NewConfig()
-	err = cfg.Init()
+	cfg, err := config.NewConfig()
 	if err != nil {
 		return err
 	}
@@ -80,7 +82,16 @@ func run(ctx context.Context) error {
 		}
 	}
 
-	clientView := appview.NewClientView(cfg, log)
+	cryptService, err := service.NewCrypt(cfg)
+	if err != nil {
+		return err
+	}
+	manager, err := controller.NewManager(cfg, cryptService, log)
+	if err != nil {
+		return err
+	}
+
+	clientView := appview.NewClientView(manager, storage.NewMemoryStorage(), log)
 
 	return clientView.InitMain(ctx)
 }

@@ -6,7 +6,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/northmule/gophkeeper/internal/client/controller"
 	"github.com/northmule/gophkeeper/internal/client/logger"
-	"github.com/northmule/gophkeeper/internal/client/storage"
 )
 
 // Экран сразу после запуска клиента
@@ -18,10 +17,10 @@ type pageIndex struct {
 	managerController controller.ManagerController
 	log               *logger.Logger
 
-	storage storage.Storage
+	storage Storage
 }
 
-func newPageIndex(managerController controller.ManagerController, storage storage.Storage, log *logger.Logger) *pageIndex {
+func newPageIndex(managerController controller.ManagerController, storage Storage, log *logger.Logger) *pageIndex {
 	return &pageIndex{
 		log:               log,
 		storage:           storage,

@@ -27,15 +27,24 @@ type ServerConfig struct {
 type ErrorCfg error
 
 // NewConfig конструктор
-func NewConfig() *Config {
+func NewConfig() (*Config, error) {
+	var err error
 	instance := new(Config)
 	instance.v = viper.New()
 	instance.value = new(ServerConfig)
-	return instance
+
+	err = instance.init()
+	if err != nil {
+		return nil, err
+	}
+	return instance, nil
 }
 
-// Init инициализация настроек из файла
+// Init deprecated
 func (c *Config) Init() error {
+	return c.init()
+}
+func (c *Config) init() error {
 	var err error
 	c.v.AddConfigPath(".")
 	c.v.SetConfigName("client")

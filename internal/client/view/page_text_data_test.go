@@ -28,7 +28,7 @@ func (m *mockTextData) Send(token string, requestData *model_data.TextDataReques
 }
 
 func TestNewPageTextData(t *testing.T) {
-	mockCfg := config.NewConfig()
+	mockCfg, _ := config.NewConfig()
 	mockCfg.Value().PathPublicKeyServer = "testpath"
 	mockCfg.Value().PathKeys = "testpath"
 	log, _ := logger.NewLogger("info")
@@ -45,7 +45,7 @@ func TestNewPageTextData(t *testing.T) {
 }
 
 func TestPageTextData_SetEditableData(t *testing.T) {
-	mockCfg := config.NewConfig()
+	mockCfg, _ := config.NewConfig()
 	mockCfg.Value().PathPublicKeyServer = "testpath"
 	mockCfg.Value().PathKeys = "testpath"
 	log, _ := logger.NewLogger("info")
@@ -74,7 +74,7 @@ func TestPageTextData_SetEditableData(t *testing.T) {
 }
 
 func TestPageTextData_SetPageGrid(t *testing.T) {
-	mockCfg := config.NewConfig()
+	mockCfg, _ := config.NewConfig()
 	mockCfg.Value().PathPublicKeyServer = "testpath"
 	mockCfg.Value().PathKeys = "testpath"
 	log, _ := logger.NewLogger("info")
@@ -89,7 +89,7 @@ func TestPageTextData_SetPageGrid(t *testing.T) {
 }
 
 func TestPageTextData_Init(t *testing.T) {
-	mockCfg := config.NewConfig()
+	mockCfg, _ := config.NewConfig()
 	mockCfg.Value().PathPublicKeyServer = "testpath"
 	mockCfg.Value().PathKeys = "testpath"
 	log, _ := logger.NewLogger("info")
@@ -103,7 +103,7 @@ func TestPageTextData_Init(t *testing.T) {
 }
 
 func TestPageTextData_Update(t *testing.T) {
-	mockCfg := config.NewConfig()
+	mockCfg, _ := config.NewConfig()
 	mockCfg.Value().PathPublicKeyServer = "testpath"
 	mockCfg.Value().PathKeys = "testpath"
 	log, _ := logger.NewLogger("info")
@@ -214,7 +214,7 @@ func TestPageTextData_Update(t *testing.T) {
 }
 
 func TestPageTextData_View(t *testing.T) {
-	mockCfg := config.NewConfig()
+	mockCfg, _ := config.NewConfig()
 	mockCfg.Value().PathPublicKeyServer = "testpath"
 	mockCfg.Value().PathKeys = "testpath"
 	log, _ := logger.NewLogger("info")

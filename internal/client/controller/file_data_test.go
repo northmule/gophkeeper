@@ -28,7 +28,7 @@ OverwriteKeys: false
 	_ = os.WriteFile("client.yaml", []byte(validConfig), 0644)
 	defer os.Remove("client.yaml")
 
-	mockConfig := config.NewConfig()
+	mockConfig, _ := config.NewConfig()
 	_ = mockConfig.Init()
 
 	return mockConfig

@@ -54,7 +54,7 @@ func writeKeyToFile(key interface{}, filename string) {
 }
 
 func TestNewCrypt_Success(t *testing.T) {
-	mockCfg := config.NewConfig()
+	mockCfg, _ := config.NewConfig()
 	mockCfg.Value().PathPublicKeyServer = path.Join("testpath")
 	mockCfg.Value().PathKeys = path.Join("testpath")
 
@@ -83,7 +83,7 @@ func TestNewCrypt_Success(t *testing.T) {
 }
 
 func TestNewCrypt_ServerPublicKeyFileError(t *testing.T) {
-	mockCfg := config.NewConfig()
+	mockCfg, _ := config.NewConfig()
 	mockCfg.Value().PathPublicKeyServer = path.Join("testpath")
 	mockCfg.Value().PathKeys = path.Join("testpath")
 
@@ -97,7 +97,7 @@ func TestNewCrypt_ServerPublicKeyFileError(t *testing.T) {
 }
 
 func TestNewCrypt_ClientPrivateKeyFileError(t *testing.T) {
-	mockCfg := config.NewConfig()
+	mockCfg, _ := config.NewConfig()
 	mockCfg.Value().PathPublicKeyServer = path.Join("testpath")
 	mockCfg.Value().PathKeys = path.Join("testpath")
 
@@ -114,7 +114,7 @@ func TestNewCrypt_ClientPrivateKeyFileError(t *testing.T) {
 }
 
 func TestNewCrypt_EncryptionKeyFileError(t *testing.T) {
-	mockCfg := config.NewConfig()
+	mockCfg, _ := config.NewConfig()
 	mockCfg.Value().PathPublicKeyServer = path.Join("testpath")
 	mockCfg.Value().PathKeys = path.Join("testpath")
 
@@ -132,7 +132,7 @@ func TestNewCrypt_EncryptionKeyFileError(t *testing.T) {
 }
 
 func TestCrypt_EncryptRSA(t *testing.T) {
-	mockCfg := config.NewConfig()
+	mockCfg, _ := config.NewConfig()
 	mockCfg.Value().PathPublicKeyServer = path.Join("testpath")
 	mockCfg.Value().PathKeys = path.Join("testpath")
 
@@ -156,7 +156,7 @@ func TestCrypt_EncryptRSA(t *testing.T) {
 	assert.NotEmpty(t, v)
 }
 func TestCrypt_DecryptRSA(t *testing.T) {
-	mockCfg := config.NewConfig()
+	mockCfg, _ := config.NewConfig()
 	mockCfg.Value().PathPublicKeyServer = path.Join("testpath")
 	mockCfg.Value().PathKeys = path.Join("testpath")
 
@@ -182,7 +182,7 @@ func TestCrypt_DecryptRSA(t *testing.T) {
 }
 
 func TestCrypt_EncryptAES(t *testing.T) {
-	mockCfg := config.NewConfig()
+	mockCfg, _ := config.NewConfig()
 	mockCfg.Value().PathPublicKeyServer = path.Join("testpath")
 	mockCfg.Value().PathKeys = path.Join("testpath")
 	key := make([]byte, 32) // AES-256 key
@@ -207,7 +207,7 @@ func TestCrypt_EncryptAES(t *testing.T) {
 }
 
 func TestCrypt_DecryptAES(t *testing.T) {
-	mockCfg := config.NewConfig()
+	mockCfg, _ := config.NewConfig()
 	mockCfg.Value().PathPublicKeyServer = path.Join("testpath")
 	mockCfg.Value().PathKeys = path.Join("testpath")
 
