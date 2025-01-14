@@ -11,7 +11,7 @@ import (
 // ClientView вьюха клиента
 type ClientView struct {
 	log           *logger.Logger
-	manager       *controller.Manager
+	manager       ManagerController
 	memoryStorage Storage
 }
 
@@ -26,8 +26,20 @@ type Storage interface {
 	AddFileData(data models.FileData) error
 }
 
+// ManagerController интерфейс для передачи в модели
+type ManagerController interface {
+	Authentication() controller.AuthenticationDataController
+	CardData() controller.CardDataController
+	TextData() controller.TextDataController
+	FileData() controller.FileDataController
+	GridData() controller.GridDataController
+	ItemData() controller.ItemDataController
+	KeysData() controller.KeyDataController
+	Registration() controller.RegistrationController
+}
+
 // NewClientView конструктор
-func NewClientView(manager *controller.Manager, storage Storage, log *logger.Logger) *ClientView {
+func NewClientView(manager ManagerController, storage Storage, log *logger.Logger) *ClientView {
 	instance := &ClientView{
 		log:           log,
 		manager:       manager,

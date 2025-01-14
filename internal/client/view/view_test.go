@@ -11,6 +11,7 @@ import (
 
 	"github.com/northmule/gophkeeper/internal/client/config"
 	"github.com/northmule/gophkeeper/internal/client/logger"
+	"github.com/northmule/gophkeeper/internal/client/storage"
 	"github.com/northmule/gophkeeper/internal/common/keys"
 	"github.com/northmule/gophkeeper/internal/common/keys/signers"
 	"github.com/stretchr/testify/assert"
@@ -18,12 +19,12 @@ import (
 )
 
 func TestNewClientView(t *testing.T) {
-	cfg, _ := config.NewConfig()
-	log, _ := logger.NewLogger("info")
 
-	clientView := NewClientView(cfg, log)
+	log, _ := logger.NewLogger("info")
+	memoryStorage := storage.NewMemoryStorage()
+	manager := new(MockManagerController)
+	clientView := NewClientView(manager, memoryStorage, log)
 	assert.NotNil(t, clientView)
-	assert.Equal(t, cfg, clientView.cfg)
 	assert.Equal(t, log, clientView.log)
 }
 
@@ -32,15 +33,16 @@ func TestInitMain(t *testing.T) {
 	mockCfg.Value().PathPublicKeyServer = "testpath"
 	mockCfg.Value().PathKeys = "testpath"
 	log, _ := logger.NewLogger("info")
-
-	clientView := NewClientView(mockCfg, log)
+	memoryStorage := storage.NewMemoryStorage()
+	manager := new(MockManagerController)
+	clientView := NewClientView(manager, memoryStorage, log)
 	err := clientView.InitMain(context.Background())
 	assert.EqualError(t, err, "open testpath/public_key.pem: no such file or directory")
 }
 
 func TestInitMain_error(t *testing.T) {
 	log, _ := logger.NewLogger("info")
-	mockCfg := config.NewConfig()
+	mockCfg, _ := config.NewConfig()
 	mockCfg.Value().PathPublicKeyServer = path.Join("testpath")
 	mockCfg.Value().PathKeys = path.Join("testpath")
 
@@ -58,8 +60,9 @@ func TestInitMain_error(t *testing.T) {
 	_ = kk.InitSelfSigned()
 
 	defer os.RemoveAll("testpath")
-
-	clientView := NewClientView(mockCfg, log)
+	memoryStorage := storage.NewMemoryStorage()
+	manager := new(MockManagerController)
+	clientView := NewClientView(manager, memoryStorage, log)
 	ctx := context.Background()
 	var cancel context.CancelFunc
 	ctx, cancel = context.WithCancel(ctx)

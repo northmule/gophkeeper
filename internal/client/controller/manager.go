@@ -42,18 +42,6 @@ func NewManager(cfg *config.Config, cryptService service.Cryptographer, logger *
 	}, nil
 }
 
-// ManagerController интерфейс для передачи в модели
-type ManagerController interface {
-	Authentication() AuthenticationDataController
-	CardData() CardDataController
-	TextData() TextDataController
-	FileData() FileDataController
-	GridData() GridDataController
-	ItemData() ItemDataController
-	KeysData() KeyDataController
-	Registration() RegistrationController
-}
-
 // ItemDataController контроллер
 type ItemDataController interface {
 	Send(token string, dataUUID string) (*model_data.DataByUUIDResponse, error)

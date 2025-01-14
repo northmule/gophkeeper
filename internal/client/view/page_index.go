@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/northmule/gophkeeper/internal/client/controller"
 	"github.com/northmule/gophkeeper/internal/client/logger"
 )
 
@@ -14,13 +13,13 @@ type pageIndex struct {
 	Chosen bool
 
 	Quitting          bool
-	managerController controller.ManagerController
+	managerController ManagerController
 	log               *logger.Logger
 
 	storage Storage
 }
 
-func newPageIndex(managerController controller.ManagerController, storage Storage, log *logger.Logger) *pageIndex {
+func newPageIndex(managerController ManagerController, storage Storage, log *logger.Logger) *pageIndex {
 	return &pageIndex{
 		log:               log,
 		storage:           storage,
