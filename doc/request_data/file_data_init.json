@@ -1,0 +1,12 @@
+{
+  "name":"Нужный документ",
+  "uuid": "",
+  "mime_type": "application/json",
+  "extension": "json",
+  "file_name": "настройки телеги.json",
+  "size": 1500,
+  "meta": {
+    "field1": "Кто это",
+    "field2": "Файл для записей"
+  }
+}
